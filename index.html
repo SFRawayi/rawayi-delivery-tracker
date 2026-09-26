@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rawayi Delivery Tracker</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1f3a34">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f3a34'/%3E%3Cpath d='M14 38h26V22H14zM40 28h7l5 6v4H40z' fill='none' stroke='%23f3e9d7' stroke-width='3.5' stroke-linejoin='round'/%3E%3Ccircle cx='21' cy='42' r='4' fill='%23f3e9d7'/%3E%3Ccircle cx='45' cy='42' r='4' fill='%23f3e9d7'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4ef; --card:#ffffff; --ink:#1c2321; --muted:#6b726f; --line:#e6e2d9;
+  --brand:#1f3a34; --brand-ink:#f3e9d7; --accent:#b8864b;
+  --c-all:#1f3a34; --c-notship:#8a8f8c; --c-pickup:#7a5cc4; --c-transit:#2f6fd6; --c-ofd:#0f8f9a;
+  --c-delivered:#1f9d55; --c-failed:#d9822b; --c-stuck:#c9a20a; --c-rto:#d64545; --c-cancel:#6b6f7a; --c-other:#9aa0a6;
+  --radius:14px; --shadow:0 1px 2px rgba(20,30,25,.06),0 4px 16px rgba(20,30,25,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+/* ---------- Auth ---------- */
+.auth-wrap{min-height:100vh;display:grid;place-items:center;padding:24px 16px;background:
+  radial-gradient(1200px 500px at 10% -10%,#e9e1d1 0,transparent 60%),var(--bg)}
+.auth-card{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px 24px;box-shadow:var(--shadow)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.02em}
+.logo-mark{width:36px;height:36px;border-radius:10px;background:var(--brand);display:grid;place-items:center;color:var(--brand-ink);flex:none}
+.auth-card h1{font-size:20px;margin:22px 0 4px}
+.auth-card p.sub{color:var(--muted);margin:0 0 18px}
+label.f{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.04em}
+input.in,select.in{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;outline:none}
+input.in:focus,select.in:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(31,58,52,.12)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:600;white-space:nowrap}
+.btn:hover{background:#faf8f4}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.danger{color:#b42318;border-color:#f3c6c1}
+.btn.sm{padding:6px 10px;font-size:12.5px;border-radius:8px}
+.btn[disabled]{opacity:.6;cursor:default}
+.btn.block{width:100%;margin-top:18px;padding:12px}
+.err{color:#b42318;background:#fdecea;border:1px solid #f7c9c4;padding:9px 11px;border-radius:9px;margin-top:14px;font-size:13px}
+.ok{color:#0f6b3a;background:#e8f6ee;border:1px solid #bfe6cf;padding:9px 11px;border-radius:9px;margin-top:14px;font-size:13px}
+.pw{position:relative}
+.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--muted);font-size:12px;font-weight:600;padding:6px}
+
+/* ---------- App shell ---------- */
+header.top{position:sticky;top:0;z-index:20;background:var(--brand);color:var(--brand-ink)}
+.top-in{max-width:1400px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.top-in .logo-mark{background:rgba(255,255,255,.12)}
+.top-title{font-weight:700;font-size:15px}
+.top-sub{font-size:12px;opacity:.75}
+.spacer{flex:1}
+.top .btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:var(--brand-ink)}
+.top .btn:hover{background:rgba(255,255,255,.18)}
+.menu{position:relative}
+.menu-pop{position:absolute;right:0;top:calc(100% + 6px);background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);min-width:200px;padding:6px;z-index:30}
+.menu-pop .who{padding:8px 10px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line);margin-bottom:4px}
+.menu-pop button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 10px;border-radius:8px}
+.menu-pop button:hover{background:#f4f2ed}
+main{max-width:1400px;margin:0 auto;padding:16px 16px 60px}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.seg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;padding:6px 11px;border-radius:7px;font-weight:600;font-size:12.5px;color:var(--muted)}
+.seg button.on{background:var(--brand);color:var(--brand-ink)}
+.sync{font-size:12px;color:var(--muted)}
+
+/* Status tabs */
+.tabs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.tab{position:relative;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px 12px 16px;box-shadow:var(--shadow);overflow:hidden;transition:transform .08s ease,border-color .15s}
+.tab:hover{transform:translateY(-1px)}
+.tab::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c)}
+.tab .t-label{font-size:12px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:6px}
+.tab .t-count{font-size:26px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.tab .t-sub{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tab.on{border-color:var(--c);box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 25%,transparent),var(--shadow)}
+.tab.on .t-label{color:var(--c)}
+
+/* Panel */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.panel-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.panel-head h2{margin:0;font-size:16px;display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--c);display:inline-block;flex:none}
+.search{flex:1;min-width:200px;max-width:360px;position:relative}
+.search input{padding-left:34px}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;border-bottom:1px solid var(--line);background:#fcfbf8}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:500;color:var(--muted)}
+.chip b{color:var(--ink);font-weight:600;margin-left:4px}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip.on b{color:#fff}
+
+.tbl-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #f0ede6;white-space:nowrap}
+th{position:sticky;top:0;background:#faf8f4;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;cursor:pointer;user-select:none;z-index:1}
+th .arr{opacity:.5;font-size:10px}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:#fbf9f5}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+th.num{text-align:right}
+td.loc{max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600;background:color-mix(in srgb,var(--c) 12%,#fff);color:color-mix(in srgb,var(--c) 85%,#000)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c)}
+.tag{display:inline-block;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:600;background:#f1efe9;color:#555}
+.tag.cod{background:#fff3e0;color:#9a5b00}
+.tag.pre{background:#e8f1ff;color:#1d4fa0}
+.age-warn{color:#b42318;font-weight:600}
+.empty{padding:48px 16px;text-align:center;color:var(--muted)}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;color:var(--muted);font-size:12px;flex-wrap:wrap}
+
+/* Mobile cards */
+.cards{display:none}
+@media (max-width:760px){
+  .tbl-wrap{display:none}
+  .cards{display:block}
+  .ocard{padding:12px 16px;border-bottom:1px solid #f0ede6;cursor:pointer}
+  .ocard .r1{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .ocard .r2{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:12.5px;margin-top:6px}
+  .ocard .r2 span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tabs{grid-template-columns:repeat(2,1fr)}
+  .tab .t-count{font-size:22px}
+  .top-sub{display:none}
+  .search{max-width:none;min-width:100%}
+  .top .btn .lbl{display:none}
+}
+
+/* Drawer / modal */
+.overlay{position:fixed;inset:0;background:rgba(15,20,18,.4);z-index:40;display:flex;justify-content:flex-end}
+.drawer{width:100%;max-width:440px;height:100%;background:#fff;overflow:auto;box-shadow:-10px 0 30px rgba(0,0,0,.12);animation:slide .18s ease}
+@keyframes slide{from{transform:translateX(30px);opacity:.5}to{transform:none;opacity:1}}
+.drawer-head{display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff}
+.drawer-head h3{margin:0;font-size:17px;flex:1}
+.x{border:0;background:#f3f1ec;width:32px;height:32px;border-radius:8px;font-size:18px;line-height:1}
+.kv{padding:6px 16px 16px}
+.kv div{display:grid;grid-template-columns:140px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid #f2efe8}
+.kv dt{color:var(--muted);font-size:12.5px}
+.kv dd{margin:0;word-break:break-word;font-weight:500}
+.drawer-actions{display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 20px}
+.modal-c{align-items:center;justify-content:center;padding:16px}
+.modal{width:100%;max-width:900px;max-height:90vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal .body{padding:16px}
+.modal h4{margin:6px 0 10px;font-size:14px}
+.form-row{display:grid;grid-template-columns:1fr 1fr 130px auto;gap:8px;align-items:end}
+@media (max-width:640px){.form-row{grid-template-columns:1fr}}
+.utable td,.utable th{white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;z-index:60;font-size:13px;box-shadow:var(--shadow)}
+.spin{width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loading-screen{min-height:60vh;display:grid;place-items:center;color:var(--muted)}
+.banner{background:#fff7e6;border:1px solid #f5d9a8;color:#7a4a00;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:13px}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+
+<!-- ============ AUTH ============ -->
+<section id="auth" class="auth-wrap hidden">
+  <form class="auth-card" id="authForm" autocomplete="on">
+    <div class="logo"><span class="logo-mark"><svg width="20" height="20" viewBox="0 0 64 64"><path d="M10 40h28V20H10zM38 27h9l7 8v5H38z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="19" cy="44" r="5" fill="currentColor"/><circle cx="46" cy="44" r="5" fill="currentColor"/></svg></span> RAWAYI</div>
+    <h1 id="authTitle">Sign in</h1>
+    <p class="sub" id="authSub">Delivery tracker — enter your username and password.</p>
+    <label class="f" for="u">Username</label>
+    <input class="in" id="u" name="username" autocomplete="username" required autocapitalize="none" spellcheck="false">
+    <label class="f" for="p">Password</label>
+    <div class="pw"><input class="in" id="p" name="password" type="password" autocomplete="current-password" required><button type="button" data-toggle="p">Show</button></div>
+    <div id="p2wrap" class="hidden">
+      <label class="f" for="p2">Confirm password</label>
+      <input class="in" id="p2" type="password" autocomplete="new-password">
+    </div>
+    <button class="btn primary block" id="authBtn" type="submit">Sign in</button>
+    <div id="authMsg"></div>
+  </form>
+</section>
+
+<!-- ============ APP ============ -->
+<section id="app" class="hidden">
+  <header class="top">
+    <div class="top-in">
+      <span class="logo-mark"><svg width="20" height="20" viewBox="0 0 64 64"><path d="M10 40h28V20H10zM38 27h9l7 8v5H38z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="19" cy="44" r="5" fill="currentColor"/><circle cx="46" cy="44" r="5" fill="currentColor"/></svg></span>
+      <div><div class="top-title">Rawayi Delivery Tracker</div><div class="top-sub" id="syncTop">—</div></div>
+      <div class="spacer"></div>
+      <button class="btn sm" id="refreshBtn" title="Refresh now"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg><span class="lbl">Refresh</span></button>
+      <div class="menu">
+        <button class="btn sm" id="userBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span class="lbl" id="userLbl">Account</span></button>
+        <div class="menu-pop hidden" id="userMenu">
+          <div class="who" id="whoAmI"></div>
+          <button id="mUsers" class="hidden">Manage users</button>
+          <button id="mPass">Change my password</button>
+          <button id="mLogout">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="loadingMain" class="loading-screen"><div><span class="spin"></span>&nbsp; Loading orders…</div></div>
+    <div id="content" class="hidden">
+      <div class="toolbar">
+        <div class="seg" id="rangeSeg">
+          <button data-r="7">7 days</button><button data-r="15">15 days</button><button data-r="30">30 days</button><button data-r="0" class="on">All</button>
+        </div>
+        <div class="seg" id="modeSeg">
+          <button data-m="all" class="on">All</button><button data-m="COD">COD</button><button data-m="Prepaid">Prepaid</button>
+        </div>
+        <div class="spacer"></div>
+        <span class="sync" id="syncInfo"></span>
+      </div>
+      <div id="banner"></div>
+      <div class="tabs" id="tabs"></div>
+
+      <div class="panel" id="panel">
+        <div class="panel-head">
+          <h2 id="panelTitle"></h2>
+          <div class="spacer"></div>
+          <div class="search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input class="in" id="q" placeholder="Search order #, AWB, city, courier…" autocomplete="off">
+          </div>
+          <select class="in" id="courierSel" style="width:auto"></select>
+          <button class="btn sm" id="exportBtn">Export CSV</button>
+        </div>
+        <div class="chips" id="chips"></div>
+        <div class="tbl-wrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+        <div class="cards" id="cards"></div>
+        <div class="foot"><span id="footCount"></span><span id="footMore"></span></div>
+      </div>
+    </div>
+  </main>
+</section>
+
+<div id="layer"></div>
+
+<script>
+(function(){
+'use strict';
+const CFG = Object.assign({PICKUP_STUCK_DAYS:3, TRANSIT_STUCK_DAYS:7, AUTO_REFRESH_MINUTES:5}, window.RAWAYI_CONFIG||{});
+const TOKEN_KEY = 'rawayi_tracker_token';
+const PAGE = 200;
+
+/* ---------- Status tabs (order = display order) ---------- */
+const CATS = [
+  {key:'all',        label:'All Orders',        color:'var(--c-all)'},
+  {key:'delivered',  label:'Delivered',         color:'var(--c-delivered)'},
+  {key:'in_transit', label:'In Transit',        color:'var(--c-transit)'},
+  {key:'ofd',        label:'Out for Delivery',  color:'var(--c-ofd)'},
+  {key:'failed',     label:'Failed Delivery',   color:'var(--c-failed)'},
+  {key:'rto',        label:'RTO',               color:'var(--c-rto)'},
+  {key:'stuck',      label:'Shipment Stuck',    color:'var(--c-stuck)'},
+  {key:'pickup',     label:'Pickup Pending',    color:'var(--c-pickup)'},
+  {key:'not_shipped',label:'Not Shipped',       color:'var(--c-notship)'},
+  {key:'cancelled',  label:'Cancelled',         color:'var(--c-cancel)'},
+  {key:'other',      label:'Other / Unknown',   color:'var(--c-other)'},
+];
+const CAT = Object.fromEntries(CATS.map(c=>[c.key,c]));
+
+/* ---------- State ---------- */
+const S = { token:null, me:null, headers:[], orders:[], fetchedAt:null, tab:'all', sub:'', q:'', courier:'', range:0, mode:'all', sort:{k:'date',d:-1}, limit:PAGE, timer:null, loading:false };
+
+/* ---------- Helpers ---------- */
+const $ = s=>document.querySelector(s);
+const esc = v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inr = n=>'₹'+Math.round(n||0).toLocaleString('en-IN');
+const show = (el,on)=>el.classList.toggle('hidden',!on);
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2600);}
+function fmtDate(d){ if(!d||isNaN(d)) return ''; return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})+', '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}); }
+function ago(d){ if(!d) return ''; const m=Math.round((Date.now()-d)/60000); if(m<1) return 'just now'; if(m<60) return m+' min ago'; const h=Math.round(m/60); return h<24? h+' h ago' : Math.round(h/24)+' d ago'; }
+
+/* ---------- API ---------- */
+async function api(action, data){
+  if(!CFG.API_URL || /PASTE_YOUR/.test(CFG.API_URL)) throw new Error('App is not connected yet: put your Apps Script Web App URL in config.js');
+  let res;
+  try{
+    res = await fetch(CFG.API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action,token:S.token},data||{}))});
+  }catch(e){ throw new Error('Could not reach the server. Check your internet connection.'); }
+  let j; try{ j = await res.json(); }catch(e){ throw new Error('Server returned an unexpected response. Check the Apps Script deployment (access must be "Anyone").'); }
+  if(!j.ok && j.error==='SESSION_EXPIRED'){ signOut('Your session expired. Please sign in again.'); throw new Error('SESSION_EXPIRED'); }
+  return j;
+}
+
+/* ---------- Classification ---------- */
+function col(headers, ...keys){
+  const h = headers.map(x=>x.toLowerCase());
+  for(const k of keys){ const i=h.findIndex(x=>x.includes(k)); if(i>=0) return i; }
+  return -1;
+}
+function parseDate(s){
+  if(!s) return null;
+  let d = new Date(s);
+  if(!isNaN(d)) return d;
+  const m = String(s).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/); // dd/mm/yyyy
+  if(m){ d = new Date(+(m[3].length===2?'20'+m[3]:m[3]), +m[2]-1, +m[1]); if(!isNaN(d)) return d; }
+  return null;
+}
+function classify(o){
+  const s = o.status.toLowerCase().trim();
+  const pay = o.payment.toLowerCase(), ful = o.fulfillment.toLowerCase();
+  const age = o.ageDays;
+  if(/\brto\b|return/.test(s)) return ['rto',''];
+  if(/undeliver|fail|ndr|attempt/.test(s)) return ['failed',''];
+  if(/^delivered|\bdelivered\b/.test(s)) return ['delivered',''];
+  if(/cancel/.test(s)) return ['cancelled',''];
+  if(/delay|held|hold|not serviceable|unserviceable|stuck|lost|damage|misrout|exception/.test(s)) return ['stuck', o.status];
+  if(/out for delivery/.test(s)) return ['ofd',''];
+  if(/awb|pickup|manifest|not picked|ready to ship|pending/.test(s)){
+    return age!=null && age>=CFG.PICKUP_STUCK_DAYS ? ['stuck', 'Not picked up · '+age+' days'] : ['pickup',''];
+  }
+  if(/transit|shipped|dispatch|picked|reached|arrived|connected|in-transit/.test(s)){
+    return age!=null && age>=CFG.TRANSIT_STUCK_DAYS ? ['stuck', 'In transit · '+age+' days'] : ['in_transit',''];
+  }
+  if(!s){
+    if(/void|refund|cancel/.test(pay)) return ['cancelled',''];
+    if(!ful || /unfulfilled|partial/.test(ful)) return ['not_shipped',''];
+  }
+  if(/void/.test(pay) && /unfulfilled/.test(ful)) return ['cancelled',''];
+  return ['other',''];
+}
+function buildOrders(headers, rows){
+  const I = {
+    id:col(headers,'order id'), name:col(headers,'order name','order #','name'), value:col(headers,'order value','value','total'),
+    pay:col(headers,'payment'), ful:col(headers,'fulfil','fulfill'), courier:col(headers,'courier'), awb:col(headers,'awb','tracking no','tracking number'),
+    status:col(headers,'live tracking status','tracking status','delivery status','status'), loc:col(headers,'checkpoint','location'),
+    date:col(headers,'order date','created'), synced:col(headers,'synced','updated')
+  };
+  const g = (r,i)=> i>=0 ? String(r[i]==null?'':r[i]).trim() : '';
+  const today = Date.now();
+  return rows.map(r=>{
+    const date = parseDate(g(r,I.date));
+    const o = {
+      raw:r, id:g(r,I.id), name:g(r,I.name)||g(r,I.id), value:parseFloat(String(g(r,I.value)).replace(/[^0-9.\-]/g,''))||0,
+      payment:g(r,I.pay), fulfillment:g(r,I.ful), courier:g(r,I.courier), awb:g(r,I.awb), status:g(r,I.status), loc:g(r,I.loc),
+      date, dateStr:g(r,I.date), synced:g(r,I.synced),
+      ageDays: date ? Math.floor((today-date)/86400000) : null
+    };
+    const c = o.courier.toLowerCase();
+    o.mode = /cod/.test(c) ? 'COD' : /prepaid/.test(c) ? 'Prepaid' : (/pending|partially/.test(o.payment.toLowerCase()) ? 'COD' : (/paid/.test(o.payment.toLowerCase())?'Prepaid':''));
+    const [cat, note] = classify(o);
+    o.cat = cat; o.note = note;
+    o.statusLabel = o.status || (cat==='not_shipped' ? 'Not shipped yet' : cat==='cancelled' ? 'Cancelled / voided' : '—');
+    o.search = [o.name,o.id,o.awb,o.courier,o.status,o.loc,o.payment].join(' ').toLowerCase();
+    return o;
+  });
+}
+function trackUrl(o){
+  if(!o.awb) return '';
+  const c=o.courier.toLowerCase();
+  if(c.includes('delhivery')) return 'https://www.delhivery.com/track-v2/package/'+encodeURIComponent(o.awb);
+  if(c.startsWith('bd_')||c.includes('bluedart')||c.includes('blue dart')) return 'https://www.bluedart.com/web/guest/trackdartresultthirdparty?trackFor=0&trackNo='+encodeURIComponent(o.awb);
+  return '';
+}
+
+/* ---------- Filtering ---------- */
+function baseFiltered(){
+  const min = S.range ? Date.now()-S.range*86400000 : 0;
+  return S.orders.filter(o=>(!S.range || (o.date && +o.date>=min)) && (S.mode==='all' || o.mode===S.mode));
+}
+function tabFiltered(base){
+  let list = S.tab==='all' ? base : base.filter(o=>o.cat===S.tab);
+  if(S.sub) list = list.filter(o=>o.statusLabel===S.sub);
+  if(S.courier) list = list.filter(o=>o.courier===S.courier);
+  if(S.q){ const q=S.q.toLowerCase().trim(); list = list.filter(o=>o.search.includes(q)); }
+  const {k,d}=S.sort;
+  const val = o=> k==='date'? (o.date?+o.date:0) : k==='value'? o.value : k==='age'? (o.ageDays??-1) : String(o[k]||'').toLowerCase();
+  return list.slice().sort((a,b)=>{const x=val(a),y=val(b); return x<y?-d:x>y?d:0;});
+}
+
+/* ---------- Render ---------- */
+function render(){
+  const base = baseFiltered();
+  // tabs
+  const counts = {}; const sums = {};
+  CATS.forEach(c=>{counts[c.key]=0;sums[c.key]=0;});
+  base.forEach(o=>{counts[o.cat]++; sums[o.cat]+=o.value; counts.all++; sums.all+=o.value;});
+  const shipped = base.filter(o=>!['not_shipped','cancelled','other'].includes(o.cat)).length || 0;
+  $('#tabs').innerHTML = CATS.filter(c=>c.key==='all'||counts[c.key]>0||['delivered','in_transit','failed','rto','stuck'].includes(c.key)).map(c=>{
+    const pct = c.key!=='all' && shipped && !['not_shipped','cancelled','other'].includes(c.key) ? ' · '+Math.round(counts[c.key]*100/shipped)+'%' : '';
+    return `<button class="tab ${S.tab===c.key?'on':''}" style="--c:${c.color}" data-tab="${c.key}">
+      <div class="t-label">${esc(c.label)}</div><div class="t-count">${counts[c.key].toLocaleString('en-IN')}</div>
+      <div class="t-sub">${inr(sums[c.key])}${pct}</div></button>`;
+  }).join('');
+
+  const cat = CAT[S.tab];
+  const inTab = S.tab==='all'? base : base.filter(o=>o.cat===S.tab);
+  $('#panelTitle').innerHTML = `<span class="dot" style="--c:${cat.color}"></span>${esc(cat.label)}`;
+  $('#panel').style.setProperty('--c',cat.color);
+
+  // exact status chips
+  const sc = {}; inTab.forEach(o=>{sc[o.statusLabel]=(sc[o.statusLabel]||0)+1;});
+  const chipList = Object.entries(sc).sort((a,b)=>b[1]-a[1]);
+  if(S.sub && !sc[S.sub]) S.sub='';
+  $('#chips').innerHTML = chipList.length>1 || S.sub ? `<button class="chip ${!S.sub?'on':''}" data-sub="">All statuses<b>${inTab.length}</b></button>` + chipList.map(([s,n])=>`<button class="chip ${S.sub===s?'on':''}" data-sub="${esc(s)}">${esc(s)}<b>${n}</b></button>`).join('') : '';
+  show($('#chips'), !!$('#chips').innerHTML);
+
+  // courier select
+  const couriers = [...new Set(inTab.map(o=>o.courier).filter(Boolean))].sort();
+  if(S.courier && !couriers.includes(S.courier)) S.courier='';
+  $('#courierSel').innerHTML = `<option value="">All couriers</option>`+couriers.map(c=>`<option ${S.courier===c?'selected':''} value="${esc(c)}">${esc(c)}</option>`).join('');
+
+  const list = tabFiltered(base);
+  const vis = list.slice(0,S.limit);
+  const showNote = S.tab==='stuck';
+  const cols = [
+    ['name','Order'],['date','Order date'],['value','Value','num'],['mode','Mode'],['courier','Courier'],['awb','AWB'],['statusLabel','Status'],['loc','Last checkpoint'],['age','Age','num']
+  ];
+  $('#thead').innerHTML = '<tr>'+cols.map(([k,l,cls])=>`<th class="${cls||''}" data-sort="${k}">${l} ${S.sort.k===k?`<span class="arr">${S.sort.d>0?'▲':'▼'}</span>`:''}</th>`).join('')+'</tr>';
+  const pill = o=>`<span class="pill" style="--c:${CAT[o.cat].color}">${esc(o.statusLabel)}</span>`;
+  const modeTag = o=> o.mode ? `<span class="tag ${o.mode==='COD'?'cod':'pre'}">${o.mode}</span>` : '';
+  const ageCell = o=>{ if(o.ageDays==null) return ''; const warn = ['in_transit','pickup','stuck','failed','ofd'].includes(o.cat) && o.ageDays>=CFG.TRANSIT_STUCK_DAYS; return `<span class="${warn?'age-warn':''}">${o.ageDays}d</span>`; };
+  $('#tbody').innerHTML = vis.map((o,i)=>`<tr data-i="${i}">
+    <td><b>${esc(o.name)}</b></td><td>${esc(fmtDate(o.date)||o.dateStr)}</td><td class="num">${inr(o.value)}</td><td>${modeTag(o)}</td>
+    <td>${esc(o.courier)}</td><td class="mono">${esc(o.awb)}</td><td>${pill(o)}${showNote&&o.note&&o.note!==o.status?`<div style="font-size:11.5px;color:var(--muted);margin-top:3px">${esc(o.note)}</div>`:''}</td>
+    <td class="loc" title="${esc(o.loc)}">${esc(o.loc)}</td><td class="num">${ageCell(o)}</td></tr>`).join('');
+  $('#cards').innerHTML = vis.map((o,i)=>`<div class="ocard" data-i="${i}">
+    <div class="r1"><b>${esc(o.name)} ${modeTag(o)}</b>${pill(o)}</div>
+    <div class="r2"><span>${esc(o.loc||o.courier||'')}</span><span>${inr(o.value)} · ${ageCell(o)||''}</span></div>
+    ${showNote&&o.note&&o.note!==o.status?`<div class="r2"><span>${esc(o.note)}</span></div>`:''}</div>`).join('');
+  S.visible = vis;
+  const empty = !list.length;
+  if(empty){ $('#tbody').innerHTML = `<tr><td colspan="9" class="empty">No orders here${S.q?' matching "'+esc(S.q)+'"':''}.</td></tr>`; $('#cards').innerHTML = `<div class="empty">No orders here.</div>`; }
+  $('#footCount').textContent = `Showing ${vis.length.toLocaleString('en-IN')} of ${list.length.toLocaleString('en-IN')} orders · ${inr(list.reduce((a,o)=>a+o.value,0))}`;
+  $('#footMore').innerHTML = list.length>vis.length ? `<button class="btn sm" id="moreBtn">Show more</button>` : '';
+  renderSync();
+}
+function renderSync(){
+  const t = S.fetchedAt ? new Date(S.fetchedAt) : null;
+  $('#syncInfo').textContent = t ? 'Updated '+ago(t)+' · auto-refresh every '+CFG.AUTO_REFRESH_MINUTES+' min' : '';
+  $('#syncTop').textContent = t ? 'Updated '+ago(t) : '';
+}
+
+/* ---------- Detail drawer ---------- */
+function openOrder(o){
+  const url = trackUrl(o);
+  const extra = S.headers.map((h,i)=>[h,o.raw[i]]).filter(([h,v])=>String(v||'').trim()!=='');
+  $('#layer').innerHTML = `<div class="overlay" id="ov"><aside class="drawer" role="dialog" aria-label="Order details">
+    <div class="drawer-head"><h3>Order ${esc(o.name)}</h3><button class="x" data-close aria-label="Close">×</button></div>
+    <div style="padding:14px 16px 4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="pill" style="--c:${CAT[o.cat].color}">${esc(o.statusLabel)}</span><span class="tag">${esc(CAT[o.cat].label)}</span>${o.mode?`<span class="tag ${o.mode==='COD'?'cod':'pre'}">${o.mode}</span>`:''}${o.ageDays!=null?`<span class="tag">${o.ageDays} days since order</span>`:''}</div>
+    ${o.note && o.note!==o.status ? `<div class="banner" style="margin:10px 16px 0">${esc(o.note)}</div>`:''}
+    <dl class="kv">${extra.map(([h,v])=>`<div><dt>${esc(h)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+    <div class="drawer-actions">
+      ${url?`<a class="btn primary" href="${esc(url)}" target="_blank" rel="noopener">Track on courier site ↗</a>`:''}
+      ${o.awb?`<button class="btn" data-copy="${esc(o.awb)}">Copy AWB</button>`:''}
+      <button class="btn" data-copy="${esc(o.name)}">Copy order #</button>
+    </div></aside></div>`;
+}
+
+/* ---------- Users modal ---------- */
+function modal(title, inner){
+  $('#layer').innerHTML = `<div class="overlay modal-c" id="ov"><div class="modal" role="dialog"><div class="drawer-head"><h3>${esc(title)}</h3><button class="x" data-close aria-label="Close">×</button></div><div class="body">${inner}</div></div></div>`;
+}
+async function openUsers(){
+  modal('Manage users', `<h4>Add a new user</h4>
+    <form id="newUser" class="form-row">
+      <div><label class="f">Username</label><input class="in" name="username" required autocapitalize="none" autocomplete="off"></div>
+      <div><label class="f">Password</label><input class="in" name="password" required minlength="6" autocomplete="new-password"></div>
+      <div><label class="f">Role</label><select class="in" name="role"><option value="viewer">Viewer</option><option value="admin">Admin</option></select></div>
+      <button class="btn primary" type="submit">Add user</button>
+    </form>
+    <div id="uMsg"></div>
+    <p style="color:var(--muted);font-size:12.5px;margin:10px 0 0">Viewers can see all orders. Admins can also add, remove and reset users.</p>
+    <h4 style="margin-top:22px">Existing users</h4><div id="uList"><span class="spin"></span></div>`);
+  loadUsers();
+}
+async function loadUsers(){
+  try{ const r = await api('listUsers'); if(!r.ok) throw new Error(r.error); drawUsers(r.users); }
+  catch(e){ if(e.message!=='SESSION_EXPIRED') $('#uList').innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+function drawUsers(users){
+  const el = $('#uList'); if(!el) return;
+  el.innerHTML = `<div class="tbl-wrap" style="display:block"><table class="utable"><thead><tr><th>Username</th><th>Role</th><th>Created</th><th>Last login</th><th></th></tr></thead><tbody>${users.map(u=>`<tr style="cursor:default">
+    <td><b>${esc(u.username)}</b>${S.me&&u.username.toLowerCase()===S.me.u.toLowerCase()?' <span class="tag">you</span>':''}</td>
+    <td><select class="in" style="padding:5px 8px;width:auto" data-role="${esc(u.username)}"><option value="viewer" ${u.role!=='admin'?'selected':''}>Viewer</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select></td>
+    <td>${esc(u.createdAt)}${u.createdBy?`<div style="font-size:11px;color:var(--muted)">by ${esc(u.createdBy)}</div>`:''}</td><td>${esc(u.lastLogin||'never')}</td>
+    <td><button class="btn sm" data-reset="${esc(u.username)}">Reset password</button> <button class="btn sm danger" data-del="${esc(u.username)}">Remove</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+function openChangePass(){
+  modal('Change my password', `<form id="chPass" style="max-width:360px">
+    <label class="f">Current password</label><input class="in" type="password" name="oldPassword" required autocomplete="current-password">
+    <label class="f">New password</label><input class="in" type="password" name="newPassword" required minlength="6" autocomplete="new-password">
+    <label class="f">Confirm new password</label><input class="in" type="password" name="confirm" required minlength="6" autocomplete="new-password">
+    <button class="btn primary block" type="submit">Update password</button><div id="cpMsg"></div></form>`);
+}
+
+/* ---------- Auth flow ---------- */
+let authMode = 'login';
+function showAuth(mode, msg){
+  authMode = mode;
+  show($('#app'),false); show($('#auth'),true);
+  const setup = mode==='setup';
+  $('#authTitle').textContent = setup ? 'Create the admin account' : 'Sign in';
+  $('#authSub').textContent = setup ? 'First-time setup. This account will be able to create logins for your team.' : 'Delivery tracker — enter your username and password.';
+  $('#authBtn').textContent = setup ? 'Create admin & sign in' : 'Sign in';
+  show($('#p2wrap'), setup); $('#p2').required = setup;
+  $('#p').autocomplete = setup ? 'new-password' : 'current-password';
+  $('#authMsg').innerHTML = msg ? `<div class="${/expired|signed out/i.test(msg)?'ok':'err'}">${esc(msg)}</div>` : '';
+  setTimeout(()=>$('#u').focus(),50);
+}
+function signOut(msg){
+  try{ localStorage.removeItem(TOKEN_KEY); }catch(e){}
+  S.token=null; S.me=null; S.orders=[]; clearInterval(S.timer);
+  $('#layer').innerHTML='';
+  showAuth('login', msg);
+}
+async function startApp(){
+  show($('#auth'),false); show($('#app'),true);
+  show($('#loadingMain'),true); show($('#content'),false);
+  $('#userLbl').textContent = S.me ? S.me.u : 'Account';
+  await loadOrders(true);
+  clearInterval(S.timer);
+  S.timer = setInterval(()=>{ loadOrders(false); }, Math.max(1,CFG.AUTO_REFRESH_MINUTES)*60000);
+}
+async function loadOrders(first){
+  if(S.loading) return; S.loading = true;
+  $('#refreshBtn').disabled = true;
+  try{
+    const r = await api('orders');
+    if(!r.ok) throw new Error(r.error||'Could not load orders');
+    S.me = r.me || S.me;
+    $('#userLbl').textContent = S.me.u;
+    $('#whoAmI').innerHTML = `Signed in as <b>${esc(S.me.u)}</b> (${esc(S.me.r)})`;
+    show($('#mUsers'), S.me.r==='admin');
+    S.headers = r.headers; S.orders = buildOrders(r.headers, r.rows); S.fetchedAt = r.fetchedAt;
+    $('#banner').innerHTML = '';
+    show($('#loadingMain'),false); show($('#content'),true);
+    render();
+    if(!first) toast('Orders refreshed');
+  }catch(e){
+    if(e.message==='SESSION_EXPIRED') return;
+    if(first && !S.orders.length){ $('#loadingMain').innerHTML = `<div class="err" style="max-width:520px">${esc(e.message)}</div>`; }
+    else $('#banner').innerHTML = `<div class="banner">Couldn't refresh: ${esc(e.message)}. Showing the last loaded data.</div>`;
+  }finally{ S.loading=false; $('#refreshBtn').disabled=false; }
+}
+
+/* ---------- Events ---------- */
+$('#authForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const username=$('#u').value.trim(), password=$('#p').value;
+  if(authMode==='setup' && password!==$('#p2').value){ $('#authMsg').innerHTML='<div class="err">Passwords do not match.</div>'; return; }
+  const b=$('#authBtn'); const old=b.textContent; b.disabled=true; b.innerHTML='<span class="spin"></span>';
+  try{
+    const r = await api(authMode==='setup'?'setup':'login',{username,password});
+    if(!r.ok) throw new Error(r.error);
+    S.token=r.token; S.me=r.me; try{ localStorage.setItem(TOKEN_KEY,r.token); }catch(e){}
+    $('#p').value=''; $('#p2').value='';
+    startApp();
+  }catch(err){ $('#authMsg').innerHTML=`<div class="err">${esc(err.message)}</div>`; }
+  finally{ b.disabled=false; b.textContent=old; }
+});
+document.addEventListener('click', async e=>{
+  const t = e.target.closest('button,[data-i],a,.overlay');
+  if(!t) { $('#userMenu').classList.add('hidden'); return; }
+  if(t.dataset.toggle){ const i=$('#'+t.dataset.toggle); i.type=i.type==='password'?'text':'password'; t.textContent=i.type==='password'?'Show':'Hide'; return; }
+  if(t.id==='userBtn'){ $('#userMenu').classList.toggle('hidden'); return; }
+  if(!t.closest('#userMenu')) $('#userMenu').classList.add('hidden');
+  if(t.id==='mLogout'){ signOut('You have been signed out.'); return; }
+  if(t.id==='mUsers'){ openUsers(); return; }
+  if(t.id==='mPass'){ openChangePass(); return; }
+  if(t.id==='refreshBtn'){ loadOrders(false); return; }
+  if(t.id==='moreBtn'){ S.limit+=PAGE; render(); return; }
+  if(t.id==='exportBtn'){ exportCsv(); return; }
+  if(t.dataset.tab){ S.tab=t.dataset.tab; S.sub=''; S.courier=''; S.limit=PAGE; render(); $('#panel').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  if(t.dataset.sub!==undefined && t.classList.contains('chip')){ S.sub=t.dataset.sub; S.limit=PAGE; render(); return; }
+  if(t.closest('#rangeSeg') && t.dataset.r!==undefined){ S.range=+t.dataset.r; document.querySelectorAll('#rangeSeg button').forEach(b=>b.classList.toggle('on',b===t)); S.limit=PAGE; render(); return; }
+  if(t.closest('#modeSeg') && t.dataset.m){ S.mode=t.dataset.m; document.querySelectorAll('#modeSeg button').forEach(b=>b.classList.toggle('on',b===t)); S.limit=PAGE; render(); return; }
+  if(t.dataset.i!==undefined && S.visible){ openOrder(S.visible[+t.dataset.i]); return; }
+  if(t.dataset.close!==undefined || (t.id==='ov' && e.target===t)){ $('#layer').innerHTML=''; return; }
+  if(t.dataset.copy){ try{ await navigator.clipboard.writeText(t.dataset.copy); toast('Copied '+t.dataset.copy); }catch(_){ toast(t.dataset.copy); } return; }
+  if(t.dataset.reset){
+    const pw = prompt('New password for '+t.dataset.reset+' (min 6 characters):'); if(!pw) return;
+    const r = await api('resetPassword',{username:t.dataset.reset,password:pw}).catch(e=>({ok:false,error:e.message}));
+    r.ok ? (toast('Password reset for '+t.dataset.reset), drawUsers(r.users)) : alert(r.error); return;
+  }
+  if(t.dataset.del){
+    if(!confirm('Remove user "'+t.dataset.del+'"? They will be signed out immediately.')) return;
+    const r = await api('deleteUser',{username:t.dataset.del}).catch(e=>({ok:false,error:e.message}));
+    r.ok ? (toast('Removed '+t.dataset.del), drawUsers(r.users)) : alert(r.error); return;
+  }
+});
+document.addEventListener('change', async e=>{
+  const t=e.target;
+  if(t.id==='courierSel'){ S.courier=t.value; S.limit=PAGE; render(); }
+  if(t.dataset.role){
+    const r = await api('setRole',{username:t.dataset.role,role:t.value}).catch(err=>({ok:false,error:err.message}));
+    if(r.ok){ toast('Role updated'); drawUsers(r.users); } else { alert(r.error); loadUsers(); }
+  }
+});
+document.addEventListener('submit', async e=>{
+  if(e.target.id==='newUser'){
+    e.preventDefault(); const f=new FormData(e.target);
+    const b=e.target.querySelector('button'); b.disabled=true;
+    const r = await api('createUser',{username:f.get('username').trim(),password:f.get('password'),role:f.get('role')}).catch(err=>({ok:false,error:err.message}));
+    b.disabled=false;
+    if(r.ok){ $('#uMsg').innerHTML=`<div class="ok">User "${esc(f.get('username'))}" created. Share the username and password with them.</div>`; e.target.reset(); drawUsers(r.users); }
+    else $('#uMsg').innerHTML=`<div class="err">${esc(r.error)}</div>`;
+  }
+  if(e.target.id==='chPass'){
+    e.preventDefault(); const f=new FormData(e.target);
+    if(f.get('newPassword')!==f.get('confirm')){ $('#cpMsg').innerHTML='<div class="err">New passwords do not match.</div>'; return; }
+    const r = await api('changePassword',{oldPassword:f.get('oldPassword'),newPassword:f.get('newPassword')}).catch(err=>({ok:false,error:err.message}));
+    if(r.ok){ S.token=r.token; try{localStorage.setItem(TOKEN_KEY,r.token);}catch(_){} $('#cpMsg').innerHTML='<div class="ok">Password updated.</div>'; e.target.reset(); }
+    else $('#cpMsg').innerHTML=`<div class="err">${esc(r.error)}</div>`;
+  }
+});
+$('#q').addEventListener('input', e=>{ S.q=e.target.value; S.limit=PAGE; clearTimeout(S.qt); S.qt=setTimeout(render,150); });
+$('#thead').addEventListener('click', e=>{ const th=e.target.closest('th'); if(!th) return; const k=th.dataset.sort; S.sort = S.sort.k===k ? {k,d:-S.sort.d} : {k,d:(k==='date'||k==='value'||k==='age')?-1:1}; render(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('#layer').innerHTML=''; });
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && S.token && S.fetchedAt && Date.now()-new Date(S.fetchedAt)>120000) loadOrders(false); });
+setInterval(renderSync, 30000);
+
+function exportCsv(){
+  const list = tabFiltered(baseFiltered());
+  const head = S.headers.concat(['Tracker Tab','Order Age (days)']);
+  const lines = [head].concat(list.map(o=>o.raw.concat([CAT[o.cat].label, o.ageDays??''])));
+  const csv = lines.map(r=>r.map(v=>{v=String(v==null?'':v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'}));
+  a.download=`rawayi-${S.tab}-${new Date().toISOString().slice(0,10)}.csv`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+/* ---------- Boot ---------- */
+(async function boot(){
+  try{ S.token = localStorage.getItem(TOKEN_KEY); }catch(e){}
+  if(S.token){ startApp(); return; }
+  try{
+    const r = await api('status');
+    showAuth(r.needsSetup ? 'setup' : 'login');
+  }catch(e){ showAuth('login', e.message); }
+})();
+})();
+</script>
+</body>
+</html>
