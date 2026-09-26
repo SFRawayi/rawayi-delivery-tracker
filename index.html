@@ -154,6 +154,14 @@ td.loc{max-width:260px;overflow:hidden;text-overflow:ellipsis}
 .spin{width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
 @keyframes sp{to{transform:rotate(360deg)}}
 .loading-screen{min-height:60vh;display:grid;place-items:center;color:var(--muted)}
+/* Orders / Returns switch */
+.views{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:-4px 0 14px;overflow-x:auto}
+.views button{border:0;background:none;padding:10px 14px;font-weight:600;font-size:14px;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.views button.on{color:var(--brand);border-bottom-color:var(--brand)}
+.views .vc{display:inline-block;min-width:22px;padding:1px 7px;border-radius:999px;background:#ebe7de;color:var(--ink);font-size:11.5px;margin-left:4px}
+.views button.on .vc{background:var(--brand);color:var(--brand-ink)}
+.ret-note{background:#fdf1ef;border:1px solid #f3cfc9;color:#8a2b1f;padding:10px 12px;border-radius:10px;margin:12px 16px 0;font-size:13px}
+
 /* Packed-by scanning screen */
 .pk-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
 .pk-head h2{margin:0;font-size:18px}
@@ -241,6 +249,10 @@ td.loc{max-width:260px;overflow:hidden;text-overflow:ellipsis}
   <main>
     <div id="loadingMain" class="loading-screen"><div><span class="spin"></span>&nbsp; Loading orders…</div></div>
     <div id="content" class="hidden">
+      <nav class="views" id="viewNav">
+        <button data-view="orders" class="on">Orders <span class="vc" id="vcOrders"></span></button>
+        <button data-view="returns">Customer Returns <span class="vc" id="vcReturns"></span></button>
+      </nav>
       <div class="toolbar">
         <div class="seg" id="rangeSeg">
           <button data-r="7">7 days</button><button data-r="15">15 days</button><button data-r="30">30 days</button><button data-r="0" class="on">All</button>
@@ -252,6 +264,7 @@ td.loc{max-width:260px;overflow:hidden;text-overflow:ellipsis}
         <span class="sync" id="syncInfo"></span>
       </div>
       <div id="banner"></div>
+      <div id="ordersView">
       <div class="tabs" id="tabs"></div>
 
       <div class="panel" id="panel">
@@ -270,6 +283,31 @@ td.loc{max-width:260px;overflow:hidden;text-overflow:ellipsis}
         <div class="tbl-wrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
         <div class="cards" id="cards"></div>
         <div class="foot"><span id="footCount"></span><span id="footMore"></span></div>
+      </div>
+      </div>
+
+      <!-- Customer returns -->
+      <div id="returnsView" class="hidden">
+        <div id="rBanner"></div>
+        <div class="tabs" id="rtabs"></div>
+        <div class="panel" id="rpanel">
+          <div class="panel-head">
+            <h2 id="rTitle"></h2>
+            <div class="spacer"></div>
+            <div class="search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input class="in" id="rq" placeholder="Search order #, return ID, reverse AWB, city…" autocomplete="off">
+            </div>
+            <select class="in" id="rShopSel" style="width:auto">
+              <option value="">Open &amp; closed</option><option value="Open">Open in Shopify</option><option value="Closed">Closed in Shopify</option>
+            </select>
+            <button class="btn sm" id="rExportBtn">Export CSV</button>
+          </div>
+          <div class="chips" id="rchips"></div>
+          <div class="tbl-wrap"><table><thead id="rthead"></thead><tbody id="rtbody"></tbody></table></div>
+          <div class="cards" id="rcards"></div>
+          <div class="foot"><span id="rFootCount"></span><span id="rFootMore"></span></div>
+        </div>
       </div>
     </div>
 
@@ -507,6 +545,7 @@ function render(){
   $('#footCount').textContent = `Showing ${vis.length.toLocaleString('en-IN')} of ${list.length.toLocaleString('en-IN')} orders · ${inr(list.reduce((a,o)=>a+o.value,0))}`;
   $('#footMore').innerHTML = list.length>vis.length ? `<button class="btn sm" id="moreBtn">Show more</button>` : '';
   renderSync();
+  renderReturns();
 }
 function renderSync(){
   const t = S.fetchedAt ? new Date(S.fetchedAt) : null;
@@ -522,6 +561,7 @@ function openOrder(o){
     <div class="drawer-head"><h3>Order ${esc(o.name)}</h3><button class="x" data-close aria-label="Close">×</button></div>
     <div style="padding:14px 16px 4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="pill" style="--c:${CAT[o.cat].color}">${esc(o.statusLabel)}</span><span class="tag">${esc(CAT[o.cat].label)}</span>${o.mode?`<span class="tag ${o.mode==='COD'?'cod':'pre'}">${o.mode}</span>`:''}${o.ageDays!=null?`<span class="tag">${o.ageDays} days since order</span>`:''}</div>
     ${o.note && o.note!==o.status ? `<div class="banner" style="margin:10px 16px 0">${esc(o.note)}</div>`:''}
+    ${(S.returnsByOrder&&S.returnsByOrder[o.name]||[]).map(x=>`<div class="ret-note">Customer return ${esc(x.rid)}: <b>${esc(x.statusLabel)}</b>${x.dstatus?' · '+esc(x.dstatus):''}</div>`).join('')}
     <dl class="kv">${extra.map(([h,v])=>`<div><dt>${esc(h)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
     <div class="drawer-actions">
       ${url?`<a class="btn primary" href="${esc(url)}" target="_blank" rel="noopener">Track on courier site ↗</a>`:''}
@@ -608,6 +648,8 @@ async function loadOrders(first){
     show($('#mUsers'), S.me.r==='admin');
     show($('#packBtn'), S.me.r==='admin');
     S.headers = r.headers; S.orders = buildOrders(r.headers, r.rows); S.fetchedAt = r.fetchedAt; indexByAwb();
+    const rr = r.returns || {headers:[],rows:[],error:'Update the Apps Script (Code.gs) to load returns.'};
+    R.headers = rr.headers||[]; R.list = buildReturns(R.headers, rr.rows||[]); R.error = rr.error||''; indexReturns();
     $('#banner').innerHTML = '';
     show($('#loadingMain'),false); show($('#content'),!P.active);
     render();
@@ -652,6 +694,7 @@ document.addEventListener('click', async e=>{
   if(t.closest('#modeSeg') && t.dataset.m){ S.mode=t.dataset.m; document.querySelectorAll('#modeSeg button').forEach(b=>b.classList.toggle('on',b===t)); S.limit=PAGE; render(); return; }
   if(t.dataset.i!==undefined && S.visible){ openOrder(S.visible[+t.dataset.i]); return; }
   if(t.dataset.close!==undefined || (t.id==='ov' && e.target===t)){ $('#layer').innerHTML=''; return; }
+  if(t.dataset.openorder){ const o = S.byName[t.dataset.openorder]; if(o) openOrder(o); return; }
   if(t.dataset.copy){ try{ await navigator.clipboard.writeText(t.dataset.copy); toast('Copied '+t.dataset.copy); }catch(_){ toast(t.dataset.copy); } return; }
   if(t.dataset.reset){
     const pw = prompt('New password for '+t.dataset.reset+' (min 6 characters):'); if(!pw) return;
@@ -704,6 +747,148 @@ function exportCsv(){
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'}));
   a.download=`rawayi-${S.tab}-${new Date().toISOString().slice(0,10)}.csv`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
+
+/* ---------- Customer returns ---------- */
+const RCATS = [
+  {key:'all',       label:'All Returns',      color:'var(--c-all)'},
+  {key:'pickup',    label:'Pickup Scheduled', color:'var(--c-pickup)'},
+  {key:'transit',   label:'In Transit',       color:'var(--c-transit)'},
+  {key:'returned',  label:'Returned',         color:'var(--c-delivered)'},
+  {key:'cancelled', label:'Pickup Cancelled', color:'var(--c-cancel)'},
+  {key:'issue',     label:'Needs Attention',  color:'var(--c-rto)'},
+];
+const RCAT = Object.fromEntries(RCATS.map(c=>[c.key,c]));
+const R = { headers:[], list:[], error:'', tab:'all', sub:'', q:'', shop:'', sort:{k:'requested',d:-1}, limit:PAGE, visible:[] };
+function rclassify(s){
+  s = String(s||'').toLowerCase();
+  if(/^returned|\bdto\b|delivered/.test(s)) return 'returned';
+  if(/cancel/.test(s)) return 'cancelled';
+  if(/pickup scheduled|scheduled|manifest|not picked|pickup pending|^open$/.test(s)) return 'pickup';
+  if(/transit|picked|dispatch/.test(s)) return 'transit';
+  return 'issue';   // No AWB in Shopify, Not found on Delhivery, Error, Other
+}
+function buildReturns(headers, rows){
+  const I = {
+    order:col(headers,'order'), awb:col(headers,'reverse awb','awb'), status:col(headers,'return status'),
+    raw:col(headers,'delhivery status','courier status'), loc:col(headers,'location'), scan:col(headers,'scan time'),
+    rid:col(headers,'return id'), shop:col(headers,'shopify return','shopify status'), req:col(headers,'requested'), upd:col(headers,'last updated')
+  };
+  const g=(r,i)=> i>=0 ? String(r[i]==null?'':r[i]).trim() : '';
+  return rows.map(r=>{
+    const x = { raw:r, order:g(r,I.order), awb:g(r,I.awb).replace(/\.0$/,''), status:g(r,I.status), dstatus:g(r,I.raw), loc:g(r,I.loc),
+      scan:parseDate(g(r,I.scan)), rid:g(r,I.rid), shop:g(r,I.shop), requested:parseDate(g(r,I.req)), updated:parseDate(g(r,I.upd)) };
+    x.cat = rclassify(x.status);
+    x.statusLabel = x.status || 'Unknown';
+    x.ageDays = x.requested ? Math.floor((Date.now()-x.requested)/86400000) : null;
+    x.search = [x.order,x.rid,x.awb,x.status,x.dstatus,x.loc].join(' ').toLowerCase();
+    return x;
+  });
+}
+function orderFor(ret){ return S.byName ? S.byName[ret.order.replace(/^#?/,'#')] || S.byName[ret.order] : null; }
+function indexReturns(){
+  S.byName = {}; S.orders.forEach(o=>{ if(o.name) S.byName[o.name] = o; });
+  S.returnsByOrder = {};
+  R.list.forEach(x=>{ const o = orderFor(x); x.o = o||null; if(o){ (S.returnsByOrder[o.name] = S.returnsByOrder[o.name]||[]).push(x); } });
+}
+function rBase(){
+  const min = S.range ? Date.now()-S.range*86400000 : 0;
+  return R.list.filter(x=>(!S.range || (x.requested && +x.requested>=min)) && (!R.shop || x.shop===R.shop));
+}
+function rFiltered(base){
+  let list = R.tab==='all' ? base : base.filter(x=>x.cat===R.tab);
+  if(R.sub) list = list.filter(x=>(x.dstatus||x.statusLabel)===R.sub);
+  if(R.q){ const q=R.q.toLowerCase().trim(); list = list.filter(x=>x.search.includes(q)); }
+  const {k,d}=R.sort;
+  const val = x=> k==='requested'? (x.requested?+x.requested:0) : k==='scan'? (x.scan?+x.scan:0) : k==='value'? (x.o?x.o.value:0) : k==='age'? (x.ageDays??-1) : String(x[k]||'').toLowerCase();
+  return list.slice().sort((a,b)=>{const p=val(a),q=val(b); return p<q?-d:p>q?d:0;});
+}
+function renderReturns(){
+  $('#vcReturns').textContent = R.list.length ? R.list.length.toLocaleString('en-IN') : '';
+  $('#vcOrders').textContent = S.orders.length ? S.orders.length.toLocaleString('en-IN') : '';
+  $('#rBanner').innerHTML = R.error ? `<div class="banner">Customer returns: ${esc(R.error)}</div>` : '';
+  const base = rBase();
+  const cnt={}, val={}; RCATS.forEach(c=>{cnt[c.key]=0; val[c.key]=0;});
+  base.forEach(x=>{ cnt[x.cat]++; cnt.all++; const v=x.o?x.o.value:0; val[x.cat]+=v; val.all+=v; });
+  $('#rtabs').innerHTML = RCATS.map(c=>{
+    const pct = c.key!=='all' && cnt.all ? ' · '+Math.round(cnt[c.key]*100/cnt.all)+'%' : '';
+    return `<button class="tab ${R.tab===c.key?'on':''}" style="--c:${c.color}" data-rtab="${c.key}"><div class="t-label">${esc(c.label)}</div><div class="t-count">${cnt[c.key].toLocaleString('en-IN')}</div><div class="t-sub">${inr(val[c.key])}${pct}</div></button>`;
+  }).join('');
+  const cat = RCAT[R.tab];
+  $('#rTitle').innerHTML = `<span class="dot" style="--c:${cat.color}"></span>${esc(cat.label)}`;
+  const inTab = R.tab==='all' ? base : base.filter(x=>x.cat===R.tab);
+  const sc={}; inTab.forEach(x=>{ const k=x.dstatus||x.statusLabel; sc[k]=(sc[k]||0)+1; });
+  if(R.sub && !sc[R.sub]) R.sub='';
+  const chipList = Object.entries(sc).sort((a,b)=>b[1]-a[1]);
+  $('#rchips').innerHTML = chipList.length>1||R.sub ? `<button class="chip ${!R.sub?'on':''}" data-rsub="">All<b>${inTab.length}</b></button>`+chipList.map(([s,n])=>`<button class="chip ${R.sub===s?'on':''}" data-rsub="${esc(s)}">${esc(s)}<b>${n}</b></button>`).join('') : '';
+  show($('#rchips'), !!$('#rchips').innerHTML);
+
+  const list = rFiltered(base), vis = list.slice(0,R.limit); R.visible = vis;
+  const cols = [['order','Order'],['rid','Return'],['requested','Requested'],['value','Value','num'],['awb','Reverse AWB'],['statusLabel','Return status'],['dstatus','Delhivery status'],['loc','Last scan'],['scan','Scan time'],['shop','Shopify'],['age','Age','num']];
+  $('#rthead').innerHTML = '<tr>'+cols.map(([k,l,c])=>`<th class="${c||''}" data-rsort="${k}">${l} ${R.sort.k===k?`<span class="arr">${R.sort.d>0?'▲':'▼'}</span>`:''}</th>`).join('')+'</tr>';
+  const pill = x=>`<span class="pill" style="--c:${RCAT[x.cat].color}">${esc(x.statusLabel)}</span>`;
+  const shopTag = x=> x.shop ? `<span class="tag ${x.shop==='Open'?'cod':''}">${esc(x.shop)}</span>` : '';
+  const age = x=>{ if(x.ageDays==null) return ''; const warn = x.cat!=='returned' && x.cat!=='cancelled' && x.ageDays>=10; return `<span class="${warn?'age-warn':''}">${x.ageDays}d</span>`; };
+  const dash = '<span style="color:var(--muted)">-</span>';
+  $('#rtbody').innerHTML = vis.map((x,i)=>`<tr data-ri="${i}">
+    <td><b>${esc(x.order)}</b></td><td>${esc(x.rid)}</td><td>${esc(fmtDate(x.requested))}</td><td class="num">${x.o?inr(x.o.value):dash}</td>
+    <td class="mono">${x.awb?esc(x.awb):dash}</td><td>${pill(x)}</td><td>${esc(x.dstatus)||dash}</td>
+    <td class="loc" title="${esc(x.loc)}">${esc(x.loc)||dash}</td><td>${esc(fmtDate(x.scan))||dash}</td><td>${shopTag(x)}</td><td class="num">${age(x)}</td></tr>`).join('');
+  $('#rcards').innerHTML = vis.map((x,i)=>`<div class="ocard" data-ri="${i}">
+    <div class="r1"><b>${esc(x.order)} <span class="tag">${esc(x.rid)}</span></b>${pill(x)}</div>
+    <div class="r2"><span>${esc(x.dstatus||'')}${x.loc?' · '+esc(x.loc):''}</span><span>${x.o?inr(x.o.value)+' · ':''}${age(x)}</span></div></div>`).join('');
+  if(!list.length){
+    const msg = R.list.length ? 'No returns here.' : (R.error ? esc(R.error) : 'No customer returns found in the Returns tab yet.');
+    $('#rtbody').innerHTML = `<tr><td colspan="11" class="empty">${msg}</td></tr>`; $('#rcards').innerHTML = `<div class="empty">${msg}</div>`;
+  }
+  $('#rFootCount').textContent = `Showing ${vis.length.toLocaleString('en-IN')} of ${list.length.toLocaleString('en-IN')} returns`+(list.length?` · ${inr(list.reduce((a,x)=>a+(x.o?x.o.value:0),0))}`:'');
+  $('#rFootMore').innerHTML = list.length>vis.length ? `<button class="btn sm" id="rMoreBtn">Show more</button>` : '';
+}
+function openReturn(x){
+  const o = x.o;
+  const fields = R.headers.map((h,i)=>[h,x.raw[i]]).filter(([h])=>!/^track$/i.test(h)).map(([h,v])=>{
+    const d = /time|requested|updated/i.test(h) ? parseDate(v) : null;
+    return [h, d ? fmtDate(d) : (String(v||'').trim() || '-')];
+  });
+  $('#layer').innerHTML = `<div class="overlay" id="ov"><aside class="drawer" role="dialog" aria-label="Return details">
+    <div class="drawer-head"><h3>Return ${esc(x.rid||'')} · ${esc(x.order)}</h3><button class="x" data-close aria-label="Close">×</button></div>
+    <div style="padding:14px 16px 4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="pill" style="--c:${RCAT[x.cat].color}">${esc(x.statusLabel)}</span>${x.shop?`<span class="tag">Shopify: ${esc(x.shop)}</span>`:''}${x.ageDays!=null?`<span class="tag">${x.ageDays} days since request</span>`:''}</div>
+    ${x.cat==='issue'?`<div class="ret-note">${/no awb/i.test(x.status)?'No reverse pickup AWB in Shopify yet — create the return shipment.':/not found/i.test(x.status)?'This reverse AWB was not found on Delhivery. Check the number in Shopify.':'Status needs a manual check.'}</div>`:''}
+    <dl class="kv">${fields.map(([h,v])=>`<div><dt>${esc(h)}</dt><dd>${esc(v)}</dd></div>`).join('')}
+    ${o?`<div><dt>Order value</dt><dd>${inr(o.value)}${o.mode?' · '+o.mode:''}</dd></div><div><dt>Forward shipment</dt><dd>${esc(o.courier||'-')} · ${esc(o.awb||'-')} · ${esc(o.statusLabel)}</dd></div><div><dt>Packed by</dt><dd>${esc(o.packedBy||'-')}</dd></div>`:`<div><dt>Order</dt><dd>Not found in the orders tab</dd></div>`}</dl>
+    <div class="drawer-actions">
+      ${x.awb?`<a class="btn primary" href="https://www.delhivery.com/track/package/${encodeURIComponent(x.awb)}" target="_blank" rel="noopener">Track return on Delhivery ↗</a><button class="btn" data-copy="${esc(x.awb)}">Copy reverse AWB</button>`:''}
+      ${o?`<button class="btn" data-openorder="${esc(o.name)}">View original order</button>`:''}
+    </div></aside></div>`;
+}
+function setView(v){
+  S.view = v;
+  document.querySelectorAll('#viewNav button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+  show($('#ordersView'), v==='orders'); show($('#returnsView'), v==='returns');
+  show($('#modeSeg'), v==='orders');
+  try{ localStorage.setItem('rawayi_view', v); }catch(e){}
+}
+function exportReturnsCsv(){
+  const list = rFiltered(rBase());
+  const head = R.headers.filter(h=>!/^track$/i.test(h)).concat(['Order Value','Tracker Tab']);
+  const idx = R.headers.map((h,i)=>i).filter(i=>!/^track$/i.test(R.headers[i]));
+  const lines = [head].concat(list.map(x=>idx.map(i=>x.raw[i]).concat([x.o?x.o.value:'', RCAT[x.cat].label])));
+  const csv = lines.map(r=>r.map(v=>{v=String(v==null?'':v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'}));
+  a.download=`rawayi-returns-${R.tab}-${new Date().toISOString().slice(0,10)}.csv`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+$('#returnsView').addEventListener('click', e=>{
+  const t = e.target.closest('button,[data-ri],th');
+  if(!t) return;
+  if(t.dataset.rtab){ R.tab=t.dataset.rtab; R.sub=''; R.limit=PAGE; renderReturns(); $('#rpanel').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  if(t.dataset.rsub!==undefined){ R.sub=t.dataset.rsub; R.limit=PAGE; renderReturns(); return; }
+  if(t.dataset.rsort){ const k=t.dataset.rsort; R.sort = R.sort.k===k ? {k,d:-R.sort.d} : {k,d:['requested','scan','value','age'].includes(k)?-1:1}; renderReturns(); return; }
+  if(t.id==='rMoreBtn'){ R.limit+=PAGE; renderReturns(); return; }
+  if(t.id==='rExportBtn'){ exportReturnsCsv(); return; }
+  if(t.dataset.ri!==undefined){ openReturn(R.visible[+t.dataset.ri]); return; }
+});
+$('#rq').addEventListener('input', e=>{ R.q=e.target.value; R.limit=PAGE; clearTimeout(R.qt); R.qt=setTimeout(renderReturns,150); });
+$('#rShopSel').addEventListener('change', e=>{ R.shop=e.target.value; R.limit=PAGE; renderReturns(); });
+$('#viewNav').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b&&b.dataset.view) setView(b.dataset.view); });
 
 /* ---------- Packed-by scanning ---------- */
 const P = { active:false, packers:[], packer:'', scans:[], queue:Promise.resolve(), stream:null, camTimer:null, lastCam:{} };
@@ -839,6 +1024,7 @@ $('#packBtn').addEventListener('click', ()=>{ P.active ? closePack() : openPack(
 /* ---------- Boot ---------- */
 (async function boot(){
   try{ S.token = localStorage.getItem(TOKEN_KEY); }catch(e){}
+  try{ const v = localStorage.getItem('rawayi_view'); if(v==='returns') setView('returns'); }catch(e){}
   if(S.token){ startApp(); return; }
   try{
     const r = await api('status');
