@@ -154,6 +154,44 @@ td.loc{max-width:260px;overflow:hidden;text-overflow:ellipsis}
 .spin{width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
 @keyframes sp{to{transform:rotate(360deg)}}
 .loading-screen{min-height:60vh;display:grid;place-items:center;color:var(--muted)}
+/* Packed-by scanning screen */
+.pk-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.pk-head h2{margin:0;font-size:18px}
+.pk-grid{display:grid;grid-template-columns:320px 1fr;gap:14px;align-items:start}
+@media (max-width:860px){.pk-grid{grid-template-columns:1fr}}
+.pk-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.pk-step{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 10px}
+.packers{display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow:auto}
+@media (max-width:860px){.packers{flex-direction:row;flex-wrap:wrap;max-height:none}}
+.packer{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;text-align:left;font-weight:600}
+.packer .av{width:28px;height:28px;border-radius:50%;background:#efe9dc;color:var(--brand);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none;text-transform:uppercase}
+.packer .cnt{margin-left:auto;font-size:12px;color:var(--muted);font-weight:500}
+.packer.on{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.packer.on .av{background:rgba(255,255,255,.18);color:var(--brand-ink)}
+.packer.on .cnt{color:var(--brand-ink);opacity:.8}
+.scanbox{display:flex;gap:8px;flex-wrap:wrap}
+.scanbox input{flex:1;min-width:200px;font-size:20px;padding:14px 16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em}
+.scanbox input:disabled{background:#f4f2ed}
+.scan-hint{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+.now-packing{display:flex;align-items:center;gap:10px;background:#f4efe4;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:13.5px}
+.now-packing b{font-size:15px}
+.scan-stats{display:flex;gap:16px;margin:14px 0 6px;font-size:12.5px;color:var(--muted)}
+.scan-stats b{color:var(--ink);font-size:16px;margin-right:4px}
+.scans{margin-top:8px;border-top:1px solid var(--line)}
+.scan{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:10px 2px;border-bottom:1px solid #f0ede6;align-items:center}
+.scan .awb{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:600}
+.scan .meta{font-size:12.5px;color:var(--muted);grid-column:1}
+.scan .res{font-size:12px;font-weight:600;padding:3px 8px;border-radius:999px;justify-self:end}
+.res.saving{background:#eef2f7;color:#445}
+.res.saved{background:#e8f6ee;color:#0f6b3a}
+.res.warn{background:#fff3e0;color:#9a5b00}
+.res.error{background:#fdecea;color:#b42318}
+.scan .acts{grid-column:2;justify-self:end}
+.scan.flash{animation:flash .9s ease}
+@keyframes flash{from{background:#fff6d6}to{background:transparent}}
+.cam{margin-top:12px;border-radius:12px;overflow:hidden;background:#000;position:relative}
+.cam video{width:100%;display:block;max-height:280px;object-fit:cover}
+.cam .line{position:absolute;left:10%;right:10%;top:50%;height:2px;background:#ff4d4d;box-shadow:0 0 8px #ff4d4d}
 .banner{background:#fff7e6;border:1px solid #f5d9a8;color:#7a4a00;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:13px}
 </style>
 <script src="config.js"></script>
@@ -187,6 +225,7 @@ td.loc{max-width:260px;overflow:hidden;text-overflow:ellipsis}
       <div><div class="top-title">Rawayi Delivery Tracker</div><div class="top-sub" id="syncTop">—</div></div>
       <div class="spacer"></div>
       <button class="btn sm" id="refreshBtn" title="Refresh now"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg><span class="lbl">Refresh</span></button>
+      <button class="btn sm hidden" id="packBtn" title="Record who packed each order"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg><span class="lbl">Packed by</span></button>
       <div class="menu">
         <button class="btn sm" id="userBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span class="lbl" id="userLbl">Account</span></button>
         <div class="menu-pop hidden" id="userMenu">
@@ -224,12 +263,40 @@ td.loc{max-width:260px;overflow:hidden;text-overflow:ellipsis}
             <input class="in" id="q" placeholder="Search order #, AWB, city, courier…" autocomplete="off">
           </div>
           <select class="in" id="courierSel" style="width:auto"></select>
+          <select class="in" id="packerSel" style="width:auto"></select>
           <button class="btn sm" id="exportBtn">Export CSV</button>
         </div>
         <div class="chips" id="chips"></div>
         <div class="tbl-wrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
         <div class="cards" id="cards"></div>
         <div class="foot"><span id="footCount"></span><span id="footMore"></span></div>
+      </div>
+    </div>
+
+    <!-- Packed-by scanning screen (admins) -->
+    <div id="packView" class="hidden">
+      <div class="pk-head">
+        <button class="btn sm" id="packBack">← Back to orders</button>
+        <h2>Packed by — scan AWBs</h2>
+      </div>
+      <div class="pk-grid">
+        <div class="pk-card">
+          <p class="pk-step">1 · Who is packing?</p>
+          <div class="packers" id="packers"><span class="spin"></span></div>
+        </div>
+        <div class="pk-card">
+          <p class="pk-step">2 · Scan AWB numbers</p>
+          <div class="now-packing" id="nowPacking">Choose a packer on the left to start scanning.</div>
+          <form class="scanbox" id="scanForm" autocomplete="off">
+            <input class="in" id="scanIn" placeholder="Scan or type AWB, then Enter" inputmode="numeric" disabled>
+            <button class="btn primary" id="scanAdd" type="submit" disabled>Add</button>
+            <button class="btn hidden" id="camBtn" type="button" disabled>📷 Camera</button>
+          </form>
+          <p class="scan-hint">A barcode scanner types the AWB and presses Enter for you, so keep scanning one after another. Each AWB is saved the moment it's scanned.</p>
+          <div class="cam hidden" id="camBox"><video id="camVideo" playsinline muted></video><div class="line"></div></div>
+          <div class="scan-stats" id="scanStats"></div>
+          <div class="scans" id="scanList"></div>
+        </div>
       </div>
     </div>
   </main>
@@ -326,7 +393,8 @@ function buildOrders(headers, rows){
     id:col(headers,'order id'), name:col(headers,'order name','order #','name'), value:col(headers,'order value','value','total'),
     pay:col(headers,'payment'), ful:col(headers,'fulfil','fulfill'), courier:col(headers,'courier'), awb:col(headers,'awb','tracking no','tracking number'),
     status:col(headers,'live tracking status','tracking status','delivery status','status'), loc:col(headers,'checkpoint','location'),
-    date:col(headers,'order date','created'), synced:col(headers,'synced','updated')
+    date:col(headers,'order date','created'), synced:col(headers,'synced','updated'),
+    packed:col(headers,'packed by'), packedAt:col(headers,'packed at')
   };
   const g = (r,i)=> i>=0 ? String(r[i]==null?'':r[i]).trim() : '';
   const today = Date.now();
@@ -335,7 +403,7 @@ function buildOrders(headers, rows){
     const o = {
       raw:r, id:g(r,I.id), name:g(r,I.name)||g(r,I.id), value:parseFloat(String(g(r,I.value)).replace(/[^0-9.\-]/g,''))||0,
       payment:g(r,I.pay), fulfillment:g(r,I.ful), courier:g(r,I.courier), awb:g(r,I.awb), status:g(r,I.status), loc:g(r,I.loc),
-      date, dateStr:g(r,I.date), synced:g(r,I.synced),
+      date, dateStr:g(r,I.date), synced:g(r,I.synced), packedBy:g(r,I.packed), packedAt:g(r,I.packedAt), _pi:I.packed, _pai:I.packedAt,
       ageDays: date ? Math.floor((today-date)/86400000) : null
     };
     const c = o.courier.toLowerCase();
@@ -343,9 +411,17 @@ function buildOrders(headers, rows){
     const [cat, note] = classify(o);
     o.cat = cat; o.note = note;
     o.statusLabel = o.status || (cat==='not_shipped' ? 'Not shipped yet' : cat==='cancelled' ? 'Cancelled / voided' : '—');
-    o.search = [o.name,o.id,o.awb,o.courier,o.status,o.loc,o.payment].join(' ').toLowerCase();
+    o.search = [o.name,o.id,o.awb,o.courier,o.status,o.loc,o.payment,o.packedBy].join(' ').toLowerCase();
     return o;
   });
+}
+const normAwb = v=>String(v==null?'':v).replace(/\s+/g,'').toUpperCase();
+function indexByAwb(){ S.byAwb = {}; S.orders.forEach(o=>{ if(o.awb) S.byAwb[normAwb(o.awb)] = o; }); }
+function setPacked(o, packer, at){
+  o.packedBy = packer||''; o.packedAt = at||'';
+  if(o._pi>=0) o.raw[o._pi] = o.packedBy;
+  if(o._pai>=0) o.raw[o._pai] = o.packedAt;
+  o.search = [o.name,o.id,o.awb,o.courier,o.status,o.loc,o.payment,o.packedBy].join(' ').toLowerCase();
 }
 function trackUrl(o){
   if(!o.awb) return '';
@@ -364,6 +440,7 @@ function tabFiltered(base){
   let list = S.tab==='all' ? base : base.filter(o=>o.cat===S.tab);
   if(S.sub) list = list.filter(o=>o.statusLabel===S.sub);
   if(S.courier) list = list.filter(o=>o.courier===S.courier);
+  if(S.packer) list = list.filter(o=> S.packer==='-' ? !o.packedBy : o.packedBy===S.packer);
   if(S.q){ const q=S.q.toLowerCase().trim(); list = list.filter(o=>o.search.includes(q)); }
   const {k,d}=S.sort;
   const val = o=> k==='date'? (o.date?+o.date:0) : k==='value'? o.value : k==='age'? (o.ageDays??-1) : String(o[k]||'').toLowerCase();
@@ -401,12 +478,15 @@ function render(){
   const couriers = [...new Set(inTab.map(o=>o.courier).filter(Boolean))].sort();
   if(S.courier && !couriers.includes(S.courier)) S.courier='';
   $('#courierSel').innerHTML = `<option value="">All couriers</option>`+couriers.map(c=>`<option ${S.courier===c?'selected':''} value="${esc(c)}">${esc(c)}</option>`).join('');
+  const packersIn = [...new Set(inTab.map(o=>o.packedBy).filter(Boolean))].sort();
+  if(S.packer && S.packer!=='-' && !packersIn.includes(S.packer)) S.packer='';
+  $('#packerSel').innerHTML = `<option value="">All packers</option><option value="-" ${S.packer==='-'?'selected':''}>Not packed (-)</option>`+packersIn.map(c=>`<option ${S.packer===c?'selected':''} value="${esc(c)}">${esc(c)}</option>`).join('');
 
   const list = tabFiltered(base);
   const vis = list.slice(0,S.limit);
   const showNote = S.tab==='stuck';
   const cols = [
-    ['name','Order'],['date','Order date'],['value','Value','num'],['mode','Mode'],['courier','Courier'],['awb','AWB'],['statusLabel','Status'],['loc','Last checkpoint'],['age','Age','num']
+    ['name','Order'],['date','Order date'],['value','Value','num'],['mode','Mode'],['courier','Courier'],['awb','AWB'],['statusLabel','Status'],['loc','Last checkpoint'],['packedBy','Packed by'],['age','Age','num']
   ];
   $('#thead').innerHTML = '<tr>'+cols.map(([k,l,cls])=>`<th class="${cls||''}" data-sort="${k}">${l} ${S.sort.k===k?`<span class="arr">${S.sort.d>0?'▲':'▼'}</span>`:''}</th>`).join('')+'</tr>';
   const pill = o=>`<span class="pill" style="--c:${CAT[o.cat].color}">${esc(o.statusLabel)}</span>`;
@@ -415,14 +495,15 @@ function render(){
   $('#tbody').innerHTML = vis.map((o,i)=>`<tr data-i="${i}">
     <td><b>${esc(o.name)}</b></td><td>${esc(fmtDate(o.date)||o.dateStr)}</td><td class="num">${inr(o.value)}</td><td>${modeTag(o)}</td>
     <td>${esc(o.courier)}</td><td class="mono">${esc(o.awb)}</td><td>${pill(o)}${showNote&&o.note&&o.note!==o.status?`<div style="font-size:11.5px;color:var(--muted);margin-top:3px">${esc(o.note)}</div>`:''}</td>
-    <td class="loc" title="${esc(o.loc)}">${esc(o.loc)}</td><td class="num">${ageCell(o)}</td></tr>`).join('');
+    <td class="loc" title="${esc(o.loc)}">${esc(o.loc)}</td><td>${o.packedBy?esc(o.packedBy):'<span style="color:var(--muted)">-</span>'}</td><td class="num">${ageCell(o)}</td></tr>`).join('');
   $('#cards').innerHTML = vis.map((o,i)=>`<div class="ocard" data-i="${i}">
     <div class="r1"><b>${esc(o.name)} ${modeTag(o)}</b>${pill(o)}</div>
     <div class="r2"><span>${esc(o.loc||o.courier||'')}</span><span>${inr(o.value)} · ${ageCell(o)||''}</span></div>
+    <div class="r2"><span>Packed by: ${o.packedBy?esc(o.packedBy):'-'}</span></div>
     ${showNote&&o.note&&o.note!==o.status?`<div class="r2"><span>${esc(o.note)}</span></div>`:''}</div>`).join('');
   S.visible = vis;
   const empty = !list.length;
-  if(empty){ $('#tbody').innerHTML = `<tr><td colspan="9" class="empty">No orders here${S.q?' matching "'+esc(S.q)+'"':''}.</td></tr>`; $('#cards').innerHTML = `<div class="empty">No orders here.</div>`; }
+  if(empty){ $('#tbody').innerHTML = `<tr><td colspan="10"class="empty">No orders here${S.q?' matching "'+esc(S.q)+'"':''}.</td></tr>`; $('#cards').innerHTML = `<div class="empty">No orders here.</div>`; }
   $('#footCount').textContent = `Showing ${vis.length.toLocaleString('en-IN')} of ${list.length.toLocaleString('en-IN')} orders · ${inr(list.reduce((a,o)=>a+o.value,0))}`;
   $('#footMore').innerHTML = list.length>vis.length ? `<button class="btn sm" id="moreBtn">Show more</button>` : '';
   renderSync();
@@ -436,7 +517,7 @@ function renderSync(){
 /* ---------- Detail drawer ---------- */
 function openOrder(o){
   const url = trackUrl(o);
-  const extra = S.headers.map((h,i)=>[h,o.raw[i]]).filter(([h,v])=>String(v||'').trim()!=='');
+  const extra = S.headers.map((h,i)=>[h,o.raw[i]]).filter(([h,v])=>String(v||'').trim()!=='' || /packed by/i.test(h)).map(([h,v])=>[h, /packed by/i.test(h) && !String(v||'').trim() ? '-' : v]);
   $('#layer').innerHTML = `<div class="overlay" id="ov"><aside class="drawer" role="dialog" aria-label="Order details">
     <div class="drawer-head"><h3>Order ${esc(o.name)}</h3><button class="x" data-close aria-label="Close">×</button></div>
     <div style="padding:14px 16px 4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="pill" style="--c:${CAT[o.cat].color}">${esc(o.statusLabel)}</span><span class="tag">${esc(CAT[o.cat].label)}</span>${o.mode?`<span class="tag ${o.mode==='COD'?'cod':'pre'}">${o.mode}</span>`:''}${o.ageDays!=null?`<span class="tag">${o.ageDays} days since order</span>`:''}</div>
@@ -503,6 +584,7 @@ function showAuth(mode, msg){
 function signOut(msg){
   try{ localStorage.removeItem(TOKEN_KEY); }catch(e){}
   S.token=null; S.me=null; S.orders=[]; clearInterval(S.timer);
+  if(P.active){ stopCam(); P.active=false; P.packer=''; P.scans=[]; show($('#packView'),false); }
   $('#layer').innerHTML='';
   showAuth('login', msg);
 }
@@ -524,9 +606,10 @@ async function loadOrders(first){
     $('#userLbl').textContent = S.me.u;
     $('#whoAmI').innerHTML = `Signed in as <b>${esc(S.me.u)}</b> (${esc(S.me.r)})`;
     show($('#mUsers'), S.me.r==='admin');
-    S.headers = r.headers; S.orders = buildOrders(r.headers, r.rows); S.fetchedAt = r.fetchedAt;
+    show($('#packBtn'), S.me.r==='admin');
+    S.headers = r.headers; S.orders = buildOrders(r.headers, r.rows); S.fetchedAt = r.fetchedAt; indexByAwb();
     $('#banner').innerHTML = '';
-    show($('#loadingMain'),false); show($('#content'),true);
+    show($('#loadingMain'),false); show($('#content'),!P.active);
     render();
     if(!first) toast('Orders refreshed');
   }catch(e){
@@ -584,6 +667,7 @@ document.addEventListener('click', async e=>{
 document.addEventListener('change', async e=>{
   const t=e.target;
   if(t.id==='courierSel'){ S.courier=t.value; S.limit=PAGE; render(); }
+  if(t.id==='packerSel'){ S.packer=t.value; S.limit=PAGE; render(); }
   if(t.dataset.role){
     const r = await api('setRole',{username:t.dataset.role,role:t.value}).catch(err=>({ok:false,error:err.message}));
     if(r.ok){ toast('Role updated'); drawUsers(r.users); } else { alert(r.error); loadUsers(); }
@@ -620,6 +704,137 @@ function exportCsv(){
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'}));
   a.download=`rawayi-${S.tab}-${new Date().toISOString().slice(0,10)}.csv`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
+
+/* ---------- Packed-by scanning ---------- */
+const P = { active:false, packers:[], packer:'', scans:[], queue:Promise.resolve(), stream:null, camTimer:null, lastCam:{} };
+let audioCtx;
+function beep(ok){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.frequency.value = ok ? 1200 : 300; o.type = ok ? 'sine' : 'square';
+    g.gain.value = .08; o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + (ok ? .09 : .35));
+  }catch(e){}
+}
+async function openPack(){
+  P.active = true;
+  show($('#content'),false); show($('#packView'),true); $('#userMenu').classList.add('hidden');
+  window.scrollTo(0,0);
+  if('BarcodeDetector' in window) show($('#camBtn'),true);
+  drawPackers();
+  try{
+    const r = await api('packers'); if(!r.ok) throw new Error(r.error);
+    P.packers = r.packers; drawPackers();
+  }catch(e){ if(e.message!=='SESSION_EXPIRED') $('#packers').innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+}
+function closePack(){
+  stopCam();
+  P.active = false; P.packer = ''; P.scans = [];
+  show($('#packView'),false); show($('#content'),true);
+  drawScans(); render();
+}
+function packedCount(name){ return S.orders.filter(o=>o.packedBy===name).length; }
+function drawPackers(){
+  if(!P.packers.length){ $('#packers').innerHTML = '<span class="spin"></span>'; return; }
+  $('#packers').innerHTML = P.packers.map(n=>`<button class="packer ${P.packer===n?'on':''}" data-packer="${esc(n)}"><span class="av">${esc(n.slice(0,2))}</span>${esc(n)}<span class="cnt">${packedCount(n)} packed</span></button>`).join('');
+}
+function selectPacker(name){
+  if(P.packer===name) { $('#scanIn').focus(); return; }
+  P.packer = name; P.scans = [];            // switching packer starts a fresh AWB list
+  $('#nowPacking').innerHTML = `Now packing: <b>${esc(name)}</b> <span style="color:var(--muted)">· every AWB you scan will be saved under this name</span>`;
+  $('#scanIn').disabled = false; $('#scanAdd').disabled = false; $('#camBtn').disabled = false;
+  drawPackers(); drawScans();
+  $('#scanIn').value=''; $('#scanIn').focus();
+}
+function drawScans(){
+  const ok = P.scans.filter(s=>s.state==='saved').length;
+  const warn = P.scans.filter(s=>s.state==='warn').length;
+  const bad = P.scans.filter(s=>s.state==='error').length;
+  const pending = P.scans.filter(s=>s.state==='saving').length;
+  $('#scanStats').innerHTML = P.packer ? `<span><b>${ok+warn}</b>saved for ${esc(P.packer)}</span>${pending?`<span><b>${pending}</b>saving…</span>`:''}${bad?`<span style="color:#b42318"><b style="color:#b42318">${bad}</b>failed</span>`:''}` : '';
+  $('#scanList').innerHTML = P.scans.map((s,i)=>{
+    const o = S.byAwb[s.awb];
+    const meta = o ? `${esc(o.name)} · ${esc(o.statusLabel)} · ${inr(o.value)}` : 'Not found in the order sheet yet';
+    const cls = {saving:'saving',saved:'saved',warn:'warn',error:'error'}[s.state];
+    const acts = s.state==='error' ? `<button class="btn sm" data-retry="${i}">Retry</button>` : (s.state==='saved'||s.state==='warn') && !s.skipped ? `<button class="btn sm" data-undo="${i}">Undo</button>` : '';
+    return `<div class="scan ${s.fresh?'flash':''}"><span class="awb">${esc(s.awb)}</span><span class="res ${cls}">${esc(s.msg)}</span><span class="meta">${meta}</span><span class="acts">${acts}</span></div>`;
+  }).join('') || (P.packer ? `<div class="empty">No AWBs scanned yet for ${esc(P.packer)}.</div>` : '');
+  P.scans.forEach(s=>s.fresh=false);
+}
+function addScan(raw){
+  const awb = normAwb(raw);
+  if(!awb || !P.packer) return;
+  const packer = P.packer;
+  const dup = P.scans.find(s=>s.awb===awb && s.state!=='error');
+  if(dup){ beep(false); toast(awb+' is already in this list'); return; }
+  const o = S.byAwb[awb];
+  const s = { awb, packer, state:'saving', msg:'Saving…', fresh:true, prev: o ? o.packedBy : '' };
+  P.scans.unshift(s);
+  if(o && o.packedBy===packer){ s.state='saved'; s.msg='Already packed by '+packer; s.skipped=true; beep(true); drawScans(); return; }
+  drawScans();
+  saveScan(s);
+}
+function saveScan(s){
+  s.state='saving'; s.msg='Saving…'; drawScans();
+  P.queue = P.queue.then(async ()=>{
+    try{
+      const r = await api('pack',{awb:s.awb, packer:s.packer});
+      if(!r.ok) throw new Error(r.error);
+      const o = S.byAwb[s.awb];
+      if(o) setPacked(o, r.packer, r.at);
+      if(r.previous){ s.state='warn'; s.prev=r.previous; s.msg='Saved · was '+r.previous; }
+      else if(!o){ s.state='warn'; s.msg='Saved · not in sheet yet'; }
+      else { s.state='saved'; s.msg='Saved'; }
+      beep(true);
+    }catch(e){ s.state='error'; s.msg = e.message==='SESSION_EXPIRED' ? 'Signed out' : 'Failed – '+e.message; beep(false); }
+    if(P.scans.includes(s)) drawScans();
+    drawPackers();
+  });
+}
+async function undoScan(i){
+  const s = P.scans[i]; if(!s) return;
+  s.state='saving'; s.msg='Undoing…'; drawScans();
+  try{
+    // put back whoever had it before; otherwise clear it (shows "-")
+    const r = s.prev ? await api('pack',{awb:s.awb, packer:s.prev}) : await api('unpack',{awb:s.awb, packer:s.packer});
+    if(!r.ok) throw new Error(r.error);
+    const o = S.byAwb[s.awb]; if(o) setPacked(o, s.prev ? r.packer : '', s.prev ? r.at : '');
+    P.scans.splice(P.scans.indexOf(s),1); toast('Removed '+s.awb);
+  }catch(e){ s.state='error'; s.msg='Undo failed – '+e.message; }
+  drawScans(); drawPackers(); $('#scanIn').focus();
+}
+async function startCam(){
+  try{
+    const det = new BarcodeDetector();
+    P.stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    const v = $('#camVideo'); v.srcObject = P.stream; await v.play();
+    show($('#camBox'),true); $('#camBtn').textContent='Stop camera';
+    P.camTimer = setInterval(async ()=>{
+      try{
+        const codes = await det.detect(v);
+        codes.forEach(c=>{ const k=normAwb(c.rawValue); if(k && (!P.lastCam[k] || Date.now()-P.lastCam[k]>4000)){ P.lastCam[k]=Date.now(); addScan(k); } });
+      }catch(e){}
+    }, 350);
+  }catch(e){ toast('Camera not available: '+e.message); stopCam(); }
+}
+function stopCam(){
+  clearInterval(P.camTimer); P.camTimer=null;
+  if(P.stream){ P.stream.getTracks().forEach(t=>t.stop()); P.stream=null; }
+  show($('#camBox'),false); $('#camBtn').textContent='📷 Camera';
+}
+$('#scanForm').addEventListener('submit', e=>{ e.preventDefault(); const v=$('#scanIn').value; $('#scanIn').value=''; addScan(v); $('#scanIn').focus(); });
+$('#packView').addEventListener('click', e=>{
+  const b = e.target.closest('button');
+  if(b && b.dataset.packer){ selectPacker(b.dataset.packer); return; }
+  if(b && b.dataset.retry){ saveScan(P.scans[+b.dataset.retry]); return; }
+  if(b && b.dataset.undo){ undoScan(+b.dataset.undo); return; }
+  if(b && b.id==='packBack'){ closePack(); return; }
+  if(b && b.id==='camBtn'){ P.stream ? stopCam() : startCam(); return; }
+  // clicking anywhere else keeps the cursor in the scan box, so the scanner never types into nothing
+  if(P.packer && !e.target.closest('input,select,a')) $('#scanIn').focus();
+});
+$('#packBtn').addEventListener('click', ()=>{ P.active ? closePack() : openPack(); });
 
 /* ---------- Boot ---------- */
 (async function boot(){
