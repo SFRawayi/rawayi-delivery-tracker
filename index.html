@@ -33,8 +33,8 @@ button{cursor:pointer}
 .auth-card h1{font-size:20px;margin:22px 0 4px}
 .auth-card p.sub{color:var(--muted);margin:0 0 18px}
 label.f{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.04em}
-input.in,select.in{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;outline:none}
-input.in:focus,select.in:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(31,58,52,.12)}
+input.in,select.in,textarea.in{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;outline:none}
+input.in:focus,select.in:focus,textarea.in:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(31,58,52,.12)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:600;white-space:nowrap}
 .btn:hover{background:#faf8f4}
 .btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
@@ -135,6 +135,53 @@ td.loc{max-width:260px;overflow:hidden;text-overflow:ellipsis}
 .overlay{position:fixed;inset:0;background:rgba(15,20,18,.4);z-index:40;display:flex;justify-content:flex-end}
 .drawer{width:100%;max-width:440px;height:100%;background:#fff;overflow:auto;box-shadow:-10px 0 30px rgba(0,0,0,.12);animation:slide .18s ease}
 @keyframes slide{from{transform:translateX(30px);opacity:.5}to{transform:none;opacity:1}}
+.overlay.left{justify-content:flex-start}
+.overlay.left .drawer{max-width:520px;box-shadow:10px 0 30px rgba(0,0,0,.12);animation:slideL .2s ease}
+@keyframes slideL{from{transform:translateX(-40px);opacity:.4}to{transform:none;opacity:1}}
+
+/* Exchange portal */
+.vtask{display:inline-block;min-width:18px;padding:1px 6px;border-radius:999px;background:#d64545;color:#fff;font-size:11px;margin-left:4px}
+.ex-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.ex-actions .btn.primary{padding:11px 16px}
+.ex-actions .btn:not(.sm){padding:11px 16px}
+.tasks{background:#fff;border:1px solid #f0d9a8;border-left:4px solid var(--c-stuck);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.tasks-head{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#fffaf0;border-bottom:1px solid #f5e6c4;flex-wrap:wrap}
+.tasks-head h3{margin:0;font-size:15px}
+.task{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 16px;border-bottom:1px solid #f4efe4;align-items:center}
+.task:last-child{border-bottom:0}
+.task .t1{font-weight:600}
+.task .t2{font-size:12.5px;color:var(--muted)}
+.task .btn{grid-row:span 2}
+.dual{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.dual .lbl2{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 16px 0}
+.sbox{border:1px solid var(--line);border-radius:12px;padding:12px}
+.sbox h5{margin:0 0 8px;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.sbox .l{font-size:12.5px;color:var(--muted);margin-top:6px;word-break:break-word}
+.hist{white-space:pre-wrap;font-size:12.5px;color:#444;background:#faf8f4;border-radius:10px;padding:10px 12px;margin:0 16px 16px;max-height:220px;overflow:auto}
+.form{padding:6px 18px 24px}
+.form .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form textarea.in{min-height:78px;resize:vertical;font:inherit}
+.form .help{font-size:12px;color:var(--muted);margin-top:5px}
+.form .req{color:#b42318}
+.hint-ok{font-size:12.5px;margin-top:6px;padding:7px 10px;border-radius:8px;background:#eef6f1;color:#0f6b3a}
+.hint-warn{font-size:12.5px;margin-top:6px;padding:7px 10px;border-radius:8px;background:#fff3e0;color:#8a5200}
+.combo{position:relative}
+.combo-list{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.12);max-height:260px;overflow:auto;z-index:5}
+.combo-list button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;font-size:13px;border-bottom:1px solid #f4f1ea}
+.combo-list button:hover,.combo-list button.hl{background:#f4efe4}
+.combo-list .sku{color:var(--muted);font-size:11.5px;margin-left:6px}
+.combo-list .none{padding:12px;color:var(--muted);font-size:13px}
+.picked{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.pk-item{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:7px 8px 7px 12px;background:#fcfbf8}
+.pk-item .nm{flex:1;font-size:13px;font-weight:500}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+.qty button{border:0;background:none;width:26px;height:26px;font-size:15px}
+.qty span{min-width:22px;text-align:center;font-size:13px;font-weight:600}
+.rm{border:0;background:none;color:#b42318;font-size:18px;width:26px;height:26px}
+.form-foot{position:sticky;bottom:0;background:#fff;padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px}
+.form-foot .btn.primary{flex:1;padding:12px}
+@media (max-width:760px){.two{grid-template-columns:1fr}.form .row2{grid-template-columns:1fr}.ex-actions .btn:not(.sm){flex:1}}
 .drawer-head{display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff}
 .drawer-head h3{margin:0;font-size:17px;flex:1}
 .x{border:0;background:#f3f1ec;width:32px;height:32px;border-radius:8px;font-size:18px;line-height:1}
@@ -253,6 +300,7 @@ td.loc{max-width:260px;overflow:hidden;text-overflow:ellipsis}
       <nav class="views" id="viewNav">
         <button data-view="orders" class="on">Orders <span class="vc" id="vcOrders"></span></button>
         <button data-view="returns">Customer Returns <span class="vc" id="vcReturns"></span></button>
+        <button data-view="exchange">Exchange <span class="vc" id="vcEx"></span><span class="vtask hidden" id="vcTask" title="Your pending exchange tasks"></span></button>
       </nav>
       <div class="toolbar">
         <div class="seg" id="rangeSeg">
@@ -308,6 +356,35 @@ td.loc{max-width:260px;overflow:hidden;text-overflow:ellipsis}
           <div class="tbl-wrap"><table><thead id="rthead"></thead><tbody id="rtbody"></tbody></table></div>
           <div class="cards" id="rcards"></div>
           <div class="foot"><span id="rFootCount"></span><span id="rFootMore"></span></div>
+        </div>
+      </div>
+
+      <!-- Exchange portal -->
+      <div id="exchangeView" class="hidden">
+        <div class="ex-actions">
+          <button class="btn primary" id="exNewBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Create reverse pickup</button>
+          <button class="btn" id="exDispatchBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>Dispatch an exchange</button>
+          <div class="spacer"></div>
+          <span class="sync" id="exSyncInfo"></span>
+          <button class="btn sm" id="exSyncBtn">Refresh courier statuses</button>
+        </div>
+        <div id="exBanner"></div>
+        <div id="exTasks"></div>
+        <div class="tabs" id="xtabs"></div>
+        <div class="panel" id="xpanel">
+          <div class="panel-head">
+            <h2 id="xTitle"></h2>
+            <div class="spacer"></div>
+            <div class="search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input class="in" id="xq" placeholder="Search ticket, order #, AWB, product…" autocomplete="off">
+            </div>
+            <select class="in" id="xAssignSel" style="width:auto"></select>
+            <button class="btn sm" id="xExportBtn">Export CSV</button>
+          </div>
+          <div class="tbl-wrap"><table><thead id="xthead"></thead><tbody id="xtbody"></tbody></table></div>
+          <div class="cards" id="xcards"></div>
+          <div class="foot"><span id="xFootCount"></span><span id="xFootMore"></span></div>
         </div>
       </div>
     </div>
@@ -547,6 +624,7 @@ function render(){
   $('#footMore').innerHTML = list.length>vis.length ? `<button class="btn sm" id="moreBtn">Show more</button>` : '';
   renderSync();
   renderReturns();
+  renderExchange();
 }
 function renderSync(){
   const t = S.fetchedAt ? new Date(S.fetchedAt) : null;
@@ -563,6 +641,7 @@ function openOrder(o){
     <div style="padding:14px 16px 4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="pill" style="--c:${CAT[o.cat].color}">${esc(o.statusLabel)}</span><span class="tag">${esc(CAT[o.cat].label)}</span>${o.mode?`<span class="tag ${o.mode==='COD'?'cod':'pre'}">${o.mode}</span>`:''}${o.ageDays!=null?`<span class="tag">${o.ageDays} days since order</span>`:''}</div>
     ${o.note && o.note!==o.status ? `<div class="banner" style="margin:10px 16px 0">${esc(o.note)}</div>`:''}
     ${(S.returnsByOrder&&S.returnsByOrder[o.name]||[]).map(x=>`<div class="ret-note">Customer return ${esc(x.rid)}: <b>${esc(x.statusLabel)}</b>${x.dstatus?' · '+esc(x.dstatus):''}</div>`).join('')}
+    ${X.rows.filter(t=>t.order===o.name).map(t=>`<div class="ret-note" style="background:#eef3fb;border-color:#cddcf3;color:#1d3f75;cursor:pointer" data-openticket="${esc(t.id)}">Exchange ${esc(t.id)}: <b>${esc(XCAT[t.stage].label)}</b> — tap to open</div>`).join('')}
     <dl class="kv">${extra.map(([h,v])=>`<div><dt>${esc(h)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
     <div class="drawer-actions">
       ${url?`<a class="btn primary" href="${esc(url)}" target="_blank" rel="noopener">Track on courier site ↗</a>`:''}
@@ -651,6 +730,8 @@ async function loadOrders(first){
     S.headers = r.headers; S.orders = buildOrders(r.headers, r.rows); S.fetchedAt = r.fetchedAt; indexByAwb();
     const rr = r.returns || {headers:[],rows:[],error:'Update the Apps Script (Code.gs) to load returns.'};
     R.headers = rr.headers||[]; R.list = buildReturns(R.headers, rr.rows||[]); R.error = rr.error||''; indexReturns();
+    X.users = r.userNames || X.users || [];
+    setExchanges(r.exchanges || {error:'Update the Apps Script (Code.gs + Exchange.gs) to use exchanges.', rows:[]});
     $('#banner').innerHTML = '';
     show($('#loadingMain'),false); show($('#content'),!P.active);
     render();
@@ -678,7 +759,7 @@ $('#authForm').addEventListener('submit', async e=>{
   finally{ b.disabled=false; b.textContent=old; }
 });
 document.addEventListener('click', async e=>{
-  const t = e.target.closest('button,[data-i],a,.overlay');
+  const t = e.target.closest('button,[data-i],[data-openticket],a,.overlay');
   if(!t) { $('#userMenu').classList.add('hidden'); return; }
   if(t.dataset.toggle){ const i=$('#'+t.dataset.toggle); i.type=i.type==='password'?'text':'password'; t.textContent=i.type==='password'?'Show':'Hide'; return; }
   if(t.id==='userBtn'){ $('#userMenu').classList.toggle('hidden'); return; }
@@ -696,6 +777,7 @@ document.addEventListener('click', async e=>{
   if(t.dataset.i!==undefined && S.visible){ openOrder(S.visible[+t.dataset.i]); return; }
   if(t.dataset.close!==undefined || (t.id==='ov' && e.target===t)){ $('#layer').innerHTML=''; return; }
   if(t.dataset.openorder){ const o = S.byName[t.dataset.openorder]; if(o) openOrder(o); return; }
+  if(t.dataset.openticket){ const k = X.rows.find(x=>x.id===t.dataset.openticket); if(k) openTicket(k); return; }
   if(t.dataset.copy){ try{ await navigator.clipboard.writeText(t.dataset.copy); toast('Copied '+t.dataset.copy); }catch(_){ toast(t.dataset.copy); } return; }
   if(t.dataset.reset){
     const pw = prompt('New password for '+t.dataset.reset+' (min 6 characters):'); if(!pw) return;
@@ -864,7 +946,7 @@ function openReturn(x){
 function setView(v){
   S.view = v;
   document.querySelectorAll('#viewNav button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
-  show($('#ordersView'), v==='orders'); show($('#returnsView'), v==='returns');
+  show($('#ordersView'), v==='orders'); show($('#returnsView'), v==='returns'); show($('#exchangeView'), v==='exchange');
   show($('#modeSeg'), v==='orders');
   try{ localStorage.setItem('rawayi_view', v); }catch(e){}
 }
@@ -890,6 +972,326 @@ $('#returnsView').addEventListener('click', e=>{
 $('#rq').addEventListener('input', e=>{ R.q=e.target.value; R.limit=PAGE; clearTimeout(R.qt); R.qt=setTimeout(renderReturns,150); });
 $('#rShopSel').addEventListener('change', e=>{ R.shop=e.target.value; R.limit=PAGE; renderReturns(); });
 $('#viewNav').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b&&b.dataset.view) setView(b.dataset.view); });
+
+/* ---------- Exchange portal ---------- */
+const XCATS = [
+  {key:'all',          label:'Total Exchange Orders',     color:'var(--c-all)'},
+  {key:'rp_scheduled', label:'Reverse Pickup Scheduled',  color:'#7a5cc4'},
+  {key:'rp_done',      label:'Reverse Pickup Done',       color:'#0f8f9a'},
+  {key:'rp_delivered', label:'Reverse Pickup Delivered',  color:'#2f6fd6'},
+  {key:'ex_scheduled', label:'Exchange Scheduled',        color:'#b8864b'},
+  {key:'ex_transit',   label:'Exchange In Transit',       color:'#d9822b'},
+  {key:'ex_delivered', label:'Exchange Delivered',        color:'#1f9d55'},
+  {key:'rp_cancelled', label:'Reverse Pickup Cancelled',  color:'#6b6f7a'},
+  {key:'ex_rto',       label:'Exchange RTO',              color:'#d64545'},
+];
+const XCAT = Object.fromEntries(XCATS.map(c=>[c.key,c]));
+const REV_LABEL = {'Scheduled':['Pickup scheduled','#7a5cc4'],'Picked Up':['Picked up · in transit','#0f8f9a'],'Delivered':['Received at warehouse','#2f6fd6'],'Cancelled':['Pickup cancelled','#6b6f7a']};
+const EXC_LABEL = {'':['Not dispatched yet','#9aa0a6'],'Scheduled':['Exchange scheduled','#b8864b'],'In Transit':['Exchange in transit','#d9822b'],'Delivered':['Exchange delivered','#1f9d55'],'RTO':['Exchange RTO','#d64545']};
+const X = { rows:[], error:'', proship:false, users:[], products:null, tab:'all', q:'', assign:'', sort:{k:'created',d:-1}, limit:PAGE, visible:[], allTasks:false, busy:false };
+
+function mapTicket(o){
+  let prods = []; try{ prods = JSON.parse(o['Products JSON']||'[]'); }catch(e){}
+  if(!prods.length && o['Products']) prods = o['Products'].split(';').map(s=>({title:s.trim(),qty:1}));
+  const t = {
+    raw:o, id:o['Ticket ID'], created:parseDate(o['Created At']), createdBy:o['Created By'], order:o['Order'], via:o['Pickup Via']||'Delhivery',
+    rawb:o['Reverse AWB'], products:prods, address:o['New Address'], assign:o['Assigned To'],
+    rStatus:o['Reverse Status'], rStage:o['Reverse Stage']||'Scheduled', rLoc:o['Reverse Location'], rUpd:parseDate(o['Reverse Updated']),
+    xawb:o['Exchange AWB'], xStatus:o['Exchange Status'], xStage:o['Exchange AWB'] ? (o['Exchange Stage']||'Scheduled') : '', xLoc:o['Exchange Location'], xUpd:parseDate(o['Exchange Updated']),
+    dispBy:o['Dispatched By'], dispAt:parseDate(o['Dispatched At']), synced:parseDate(o['Last Synced']), history:o['History']||''
+  };
+  t.stage = t.xawb ? ({'RTO':'ex_rto','Delivered':'ex_delivered','In Transit':'ex_transit'}[t.xStage]||'ex_scheduled')
+                   : ({'Cancelled':'rp_cancelled','Delivered':'rp_delivered','Picked Up':'rp_done'}[t.rStage]||'rp_scheduled');
+  t.ageDays = t.created ? Math.floor((Date.now()-t.created)/86400000) : null;
+  t.productsText = prods.map(p=>p.title+(p.qty>1?' × '+p.qty:'')).join(', ');
+  t.search = [t.id,t.order,t.rawb,t.xawb,t.productsText,t.assign,t.createdBy,t.address].join(' ').toLowerCase();
+  return t;
+}
+function setExchanges(ex){
+  X.error = ex.error||''; X.proship = !!ex.proshipEnabled;
+  X.rows = (ex.rows||[]).map(mapTicket);
+}
+function upsertTicket(o){
+  const t = mapTicket(o); const i = X.rows.findIndex(x=>x.id===t.id);
+  if(i>=0) X.rows[i]=t; else X.rows.push(t);
+  renderExchange(); return t;
+}
+const isMe = n => S.me && String(n||'').toLowerCase()===S.me.u.toLowerCase();
+function isTask(t){ return !t.xawb && (t.rStage==='Picked Up' || t.rStage==='Delivered'); }
+function revPill(t){ const [l,c] = REV_LABEL[t.rStage]||REV_LABEL['Scheduled']; return `<span class="pill" style="--c:${c}">${esc(l)}</span>`; }
+function excPill(t){ const [l,c] = EXC_LABEL[t.xStage]||EXC_LABEL['']; return `<span class="pill" style="--c:${c}">${esc(l)}</span>`; }
+function userOptions(sel, placeholder){
+  const list = X.users.length ? X.users : (S.me?[S.me.u]:[]);
+  return (placeholder?`<option value="">${esc(placeholder)}</option>`:'') + list.map(u=>`<option value="${esc(u)}" ${u===sel?'selected':''}>${esc(u)}${isMe(u)?' (you)':''}</option>`).join('');
+}
+
+function xBase(){
+  const min = S.range ? Date.now()-S.range*86400000 : 0;
+  return X.rows.filter(t=>(!S.range || (t.created && +t.created>=min)) && (!X.assign || (X.assign==='__me' ? isMe(t.assign) : t.assign===X.assign)));
+}
+function xFiltered(base){
+  let list = X.tab==='all' ? base : base.filter(t=>t.stage===X.tab);
+  if(X.q){ const q=X.q.toLowerCase().trim(); list = list.filter(t=>t.search.includes(q)); }
+  const {k,d}=X.sort;
+  const val = t=> k==='created'? (t.created?+t.created:0) : k==='age'? (t.ageDays??-1) : String(t[k]||'').toLowerCase();
+  return list.slice().sort((a,b)=>{const p=val(a),q=val(b); return p<q?-d:p>q?d:0;});
+}
+function renderExchange(){
+  if(!$('#xtabs')) return;
+  const mine = X.rows.filter(t=>isTask(t) && isMe(t.assign));
+  $('#vcEx').textContent = X.rows.length ? X.rows.length.toLocaleString('en-IN') : '';
+  $('#vcTask').textContent = mine.length; show($('#vcTask'), mine.length>0);
+  $('#exBanner').innerHTML = X.error ? `<div class="banner">${esc(X.error)}</div>` : '';
+  const last = X.rows.reduce((m,t)=>t.synced&&(!m||t.synced>m)?t.synced:m,null);
+  $('#exSyncInfo').textContent = last ? 'Courier statuses checked '+ago(last) : '';
+
+  // pending tasks
+  const isAdmin = S.me && S.me.r==='admin';
+  const tasks = (X.allTasks && isAdmin ? X.rows.filter(isTask) : mine).sort((a,b)=>(a.rUpd||a.created||0)-(b.rUpd||b.created||0));
+  $('#exTasks').innerHTML = (tasks.length || (isAdmin && X.rows.some(isTask))) ? `<div class="tasks">
+    <div class="tasks-head"><h3>${X.allTasks&&isAdmin?'All pending exchange tasks':'Your pending tasks'} · ${tasks.length}</h3><span class="sync">Reverse pickup is on its way back — create the exchange and add the Proship AWB.</span><div class="spacer"></div>
+    ${isAdmin?`<button class="btn sm" id="xTaskToggle">${X.allTasks?'Show only mine':'Show everyone\'s'}</button>`:''}</div>
+    ${tasks.map(t=>`<div class="task"><div class="t1">${esc(t.id)} · ${esc(t.order)} ${revPill(t)}</div>
+      <button class="btn primary sm" data-xdispatch="${esc(t.id)}">Create exchange</button>
+      <div class="t2">${esc(t.productsText)}${t.address?' · New address':''}${X.allTasks?' · Assigned to '+esc(t.assign):''}${t.rLoc?' · '+esc(t.rLoc):''}</div></div>`).join('') || '<div class="task"><div class="t2">Nothing pending for you.</div></div>'}
+  </div>` : '';
+
+  const base = xBase();
+  const cnt = {}; XCATS.forEach(c=>cnt[c.key]=0);
+  base.forEach(t=>{ cnt[t.stage]++; cnt.all++; });
+  $('#xtabs').innerHTML = XCATS.map(c=>`<button class="tab ${X.tab===c.key?'on':''}" style="--c:${c.color}" data-xtab="${c.key}"><div class="t-label">${esc(c.label)}</div><div class="t-count">${cnt[c.key]}</div><div class="t-sub">${c.key!=='all'&&cnt.all?Math.round(cnt[c.key]*100/cnt.all)+'% of exchanges':'&nbsp;'}</div></button>`).join('');
+  const cat = XCAT[X.tab];
+  $('#xTitle').innerHTML = `<span class="dot" style="--c:${cat.color}"></span>${esc(cat.label)}`;
+  const assignees = [...new Set(X.rows.map(t=>t.assign).filter(Boolean))].sort();
+  $('#xAssignSel').innerHTML = `<option value="">Everyone</option><option value="__me" ${X.assign==='__me'?'selected':''}>Assigned to me</option>`+assignees.map(a=>`<option value="${esc(a)}" ${X.assign===a?'selected':''}>${esc(a)}</option>`).join('');
+
+  const list = xFiltered(base), vis = list.slice(0,X.limit); X.visible = vis;
+  const cols=[['id','Ticket'],['order','Order'],['created','Created'],['productsText','Products'],['rStage','Reverse pickup'],['xStage','Exchange'],['assign','Assigned to'],['age','Age','num']];
+  $('#xthead').innerHTML = '<tr>'+cols.map(([k,l,c])=>`<th class="${c||''}" data-xsort="${k}">${l} ${X.sort.k===k?`<span class="arr">${X.sort.d>0?'▲':'▼'}</span>`:''}</th>`).join('')+'</tr>';
+  const awbLine = (awb, via)=> via==='Self Courier' ? '<span class="tag">Self courier</span>' : awb ? `<span class="mono" style="font-size:12px">${esc(awb)}</span>` : '';
+  $('#xtbody').innerHTML = vis.map((t,i)=>`<tr data-xi="${i}">
+    <td><b>${esc(t.id)}</b></td><td>${esc(t.order)}</td><td>${esc(fmtDate(t.created))}</td>
+    <td class="loc" title="${esc(t.productsText)}" style="max-width:220px">${esc(t.productsText)}</td>
+    <td><div class="dual">${revPill(t)}${awbLine(t.rawb,t.via)}</div></td>
+    <td><div class="dual">${excPill(t)}${t.xawb?`<span class="mono" style="font-size:12px">${esc(t.xawb)}</span>`:''}</div></td>
+    <td>${esc(t.assign)}${isMe(t.assign)?' <span class="tag">you</span>':''}</td><td class="num">${t.ageDays!=null?t.ageDays+'d':''}</td></tr>`).join('');
+  $('#xcards').innerHTML = vis.map((t,i)=>`<div class="ocard" data-xi="${i}">
+    <div class="r1"><b>${esc(t.id)} · ${esc(t.order)}</b><span class="tag">${esc(t.assign)}</span></div>
+    <div class="r2"><span>${esc(t.productsText)}</span></div>
+    <div class="r1" style="margin-top:6px;justify-content:flex-start;gap:6px;flex-wrap:wrap">${revPill(t)}${excPill(t)}</div></div>`).join('');
+  if(!list.length){
+    const msg = X.rows.length ? 'No exchanges here.' : 'No exchange tickets yet — click “Create reverse pickup” to start.';
+    $('#xtbody').innerHTML = `<tr><td colspan="8" class="empty">${msg}</td></tr>`; $('#xcards').innerHTML = `<div class="empty">${msg}</div>`;
+  }
+  $('#xFootCount').textContent = `Showing ${vis.length} of ${list.length} exchanges`;
+  $('#xFootMore').innerHTML = list.length>vis.length ? `<button class="btn sm" id="xMoreBtn">Show more</button>` : '';
+}
+
+/* --- Left slider: create reverse pickup --- */
+async function loadProducts(force){
+  if(X.products && !force) return X.products;
+  const r = await api('exProducts',{refresh:!!force});
+  if(!r.ok) throw new Error(r.error);
+  X.products = r.products.map(p=>({id:p.id,title:p.title,sku:p.sku,s:(p.title+' '+p.sku).toLowerCase()}));
+  return X.products;
+}
+function openCreate(){
+  const F = { picked:[], hl:0 };
+  $('#layer').innerHTML = `<div class="overlay left" id="ov"><aside class="drawer" role="dialog" aria-label="Create reverse pickup">
+    <div class="drawer-head"><h3>Create reverse pickup</h3><button class="x" data-close aria-label="Close">×</button></div>
+    <form class="form" id="crForm" autocomplete="off">
+      <label class="f">Pickup created by <span class="req">*</span></label>
+      <select class="in" id="crBy" required>${userOptions(S.me&&S.me.u)}</select>
+      <label class="f">Order ID <span class="req">*</span></label>
+      <input class="in" id="crOrder" placeholder="e.g. 21116" required inputmode="numeric">
+      <div id="crOrderHint"></div>
+      <label class="f">Reverse pickup via <span class="req">*</span></label>
+      <select class="in" id="crVia"><option value="Delhivery">Delhivery AWB no.</option><option value="Self Courier">Self courier (customer ships it)</option></select>
+      <div id="crAwbWrap"><label class="f">Delhivery AWB no. <span class="req">*</span></label><input class="in mono" id="crAwb" placeholder="Reverse pickup AWB" inputmode="numeric"></div>
+      <label class="f">Products for exchange <span class="req">*</span></label>
+      <div class="combo"><input class="in" id="crProd" placeholder="Loading Shopify products…" disabled><div class="combo-list hidden" id="crList"></div></div>
+      <div class="help" id="crProdHelp">Search by name, colour, size or SKU. Add as many as needed.</div>
+      <div class="picked" id="crPicked"></div>
+      <label class="f">New delivery address <span style="text-transform:none;font-weight:500">(optional)</span></label>
+      <textarea class="in" id="crAddr" placeholder="Only if the customer wants the exchange at a different address — include name, phone, pincode"></textarea>
+      <label class="f">Assign ticket to <span class="req">*</span></label>
+      <select class="in" id="crAssign" required>${userOptions('', 'Choose who creates the exchange…')}</select>
+      <div id="crMsg"></div>
+    </form>
+    <div class="form-foot"><button class="btn" data-close type="button">Cancel</button><button class="btn primary" id="crSubmit" type="button">Create reverse pickup</button></div>
+  </aside></div>`;
+  const orderIn=$('#crOrder'), via=$('#crVia'), prodIn=$('#crProd'), listEl=$('#crList');
+  orderIn.addEventListener('input', ()=>{
+    const v = orderIn.value.trim(); const name = v ? (v[0]==='#'?v:'#'+v) : '';
+    const o = S.byName && S.byName[name]; const open = X.rows.filter(t=>t.order===name && !['ex_delivered','rp_cancelled','ex_rto'].includes(t.stage));
+    $('#crOrderHint').innerHTML = !v ? '' : o
+      ? `<div class="hint-ok">${esc(o.name)} · ${inr(o.value)} · ${esc(o.mode||'')} · ${esc(o.statusLabel)}${o.date?' · ordered '+esc(fmtDate(o.date)):''}</div>${open.length?`<div class="hint-warn">This order already has an open exchange: ${open.map(t=>esc(t.id)).join(', ')}</div>`:''}`
+      : `<div class="hint-warn">${esc(name)} isn't in the orders sheet. You can still create the ticket — double-check the number.</div>`;
+  });
+  via.addEventListener('change', ()=>show($('#crAwbWrap'), via.value==='Delhivery'));
+  const drawPicked = ()=>{ $('#crPicked').innerHTML = F.picked.map((p,i)=>`<div class="pk-item"><span class="nm">${esc(p.title)}${p.sku?`<span class="sku" style="color:var(--muted);font-size:11.5px"> · ${esc(p.sku)}</span>`:''}</span>
+      <span class="qty"><button type="button" data-qd="${i}">−</button><span>${p.qty}</span><button type="button" data-qi="${i}">+</button></span><button type="button" class="rm" data-rm="${i}" aria-label="Remove">×</button></div>`).join(''); };
+  const matches = ()=>{
+    const words = prodIn.value.toLowerCase().split(/\s+/).filter(Boolean);
+    // every word must appear; words that match a whole word (e.g. size "l") rank higher than partial hits ("l" in "olive")
+    return (X.products||[]).filter(p=>words.every(w=>p.s.includes(w)))
+      .map(p=>{ const toks = p.s.split(/[^a-z0-9]+/); return {p, score: words.reduce((n,w)=>n+(toks.includes(w)?2:toks.some(t=>t.startsWith(w))?1:0),0)}; })
+      .sort((a,b)=>b.score-a.score).slice(0,50).map(x=>x.p);
+  };
+  const drawList = ()=>{ const m = matches(); F.m = m; F.hl = Math.min(F.hl, Math.max(0,m.length-1));
+    listEl.innerHTML = m.length ? m.map((p,i)=>`<button type="button" class="${i===F.hl?'hl':''}" data-pick="${i}">${esc(p.title)}${p.sku?`<span class="sku">${esc(p.sku)}</span>`:''}</button>`).join('') : `<div class="none">No product matches “${esc(prodIn.value)}”</div>`;
+    show(listEl, true); };
+  const pick = i=>{ const p = F.m && F.m[i]; if(!p) return; const ex = F.picked.find(x=>x.id===p.id); if(ex) ex.qty++; else F.picked.push({id:p.id,title:p.title,sku:p.sku,qty:1});
+    prodIn.value=''; show(listEl,false); drawPicked(); prodIn.focus(); };
+  prodIn.addEventListener('input', ()=>{ F.hl=0; drawList(); });
+  prodIn.addEventListener('focus', ()=>{ if(prodIn.value) drawList(); });
+  prodIn.addEventListener('keydown', e=>{
+    if(e.key==='ArrowDown'){ e.preventDefault(); F.hl++; drawList(); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); F.hl=Math.max(0,F.hl-1); drawList(); }
+    else if(e.key==='Enter'){ e.preventDefault(); if(!listEl.classList.contains('hidden')) pick(F.hl); }
+    else if(e.key==='Escape'){ e.stopPropagation(); show(listEl,false); }
+  });
+  $('#crForm').addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) { if(!e.target.closest('.combo')) show(listEl,false); return; }
+    if(b.dataset.pick!==undefined) pick(+b.dataset.pick);
+    else if(b.dataset.qi!==undefined){ F.picked[+b.dataset.qi].qty++; drawPicked(); }
+    else if(b.dataset.qd!==undefined){ const p=F.picked[+b.dataset.qd]; if(p.qty>1) p.qty--; drawPicked(); }
+    else if(b.dataset.rm!==undefined){ F.picked.splice(+b.dataset.rm,1); drawPicked(); }
+  });
+  $('#crForm').addEventListener('submit', e=>e.preventDefault());
+  $('#crSubmit').addEventListener('click', async ()=>{
+    const v = orderIn.value.trim(), msg = $('#crMsg');
+    const err = !v ? 'Enter the order ID.' : via.value==='Delhivery' && !$('#crAwb').value.trim() ? 'Enter the Delhivery AWB number.' : !F.picked.length ? 'Add at least one product.' : !$('#crAssign').value ? 'Choose who to assign the ticket to.' : '';
+    if(err){ msg.innerHTML = `<div class="err">${esc(err)}</div>`; return; }
+    const b = $('#crSubmit'); b.disabled = true; b.innerHTML = '<span class="spin"></span>';
+    try{
+      const r = await api('exCreate',{ createdBy:$('#crBy').value, order:v, via:via.value, awb:$('#crAwb').value.trim(), products:F.picked, address:$('#crAddr').value.trim(), assignTo:$('#crAssign').value });
+      if(!r.ok) throw new Error(r.error);
+      const t = upsertTicket(r.row);
+      $('#layer').innerHTML=''; toast(`${t.id} created · ${XCAT[t.stage].label}`);
+    }catch(e2){ if(e2.message!=='SESSION_EXPIRED'){ msg.innerHTML = `<div class="err">${esc(e2.message)}</div>`; b.disabled=false; b.textContent='Create reverse pickup'; } }
+  });
+  setTimeout(()=>orderIn.focus(),60);
+  loadProducts().then(()=>{ if(!document.body.contains(prodIn)) return; prodIn.disabled=false; prodIn.placeholder=`Search ${X.products.length} Shopify products…`; })
+    .catch(e=>{ if(!document.body.contains(prodIn)) return; prodIn.placeholder='Products could not load'; $('#crProdHelp').innerHTML = `<span style="color:#b42318">${esc(e.message)}</span>`; });
+}
+
+/* --- Left slider: dispatch exchange --- */
+function openDispatch(ticketId){
+  const eligible = X.rows.filter(t=>t.id===ticketId || (!t.xawb && t.rStage!=='Cancelled'))
+    .sort((a,b)=> (isTask(b)&&isMe(b.assign)) - (isTask(a)&&isMe(a.assign)) || (b.created||0)-(a.created||0));
+  const cur = X.rows.find(t=>t.id===ticketId);
+  $('#layer').innerHTML = `<div class="overlay left" id="ov"><aside class="drawer" role="dialog" aria-label="Dispatch exchange">
+    <div class="drawer-head"><h3>${cur&&cur.xawb?'Change exchange AWB':'Dispatch an exchange'}</h3><button class="x" data-close aria-label="Close">×</button></div>
+    <form class="form" id="dpForm" autocomplete="off">
+      <label class="f">Exchange ticket <span class="req">*</span></label>
+      <select class="in" id="dpTicket"><option value="">Choose a ticket…</option>${eligible.map(t=>`<option value="${esc(t.id)}" ${t.id===ticketId?'selected':''}>${esc(t.id)} · ${esc(t.order)} · ${esc((REV_LABEL[t.rStage]||[''])[0])}${isMe(t.assign)?' · yours':''}</option>`).join('')}</select>
+      <div id="dpInfo"></div>
+      <label class="f">Proship AWB no. for the exchange <span class="req">*</span></label>
+      <input class="in mono" id="dpAwb" placeholder="Scan or type the Proship AWB" value="${esc(cur&&cur.xawb||'')}">
+      <div class="help">${X.proship?'Its status will be tracked automatically through Proship.':'Proship tracking isn\'t connected yet — you can update the exchange status by hand from the ticket.'}</div>
+      <div id="dpMsg"></div>
+    </form>
+    <div class="form-foot"><button class="btn" data-close type="button">Cancel</button><button class="btn primary" id="dpSubmit" type="button">Save exchange AWB</button></div>
+  </aside></div>`;
+  const sel=$('#dpTicket');
+  const info = ()=>{ const t = X.rows.find(x=>x.id===sel.value);
+    $('#dpInfo').innerHTML = t ? `<div class="hint-ok" style="background:#f6f4ef;color:var(--ink)"><b>${esc(t.order)}</b> · ${revPill(t)}<div style="margin-top:6px">${t.products.map(p=>`• ${esc(p.title)}${p.qty>1?' × '+p.qty:''}`).join('<br>')}</div>${t.address?`<div style="margin-top:6px"><b>Ship to new address:</b><br>${esc(t.address).replace(/\n/g,'<br>')}</div>`:'<div style="margin-top:6px;color:var(--muted)">Ship to the original order address.</div>'}</div>
+      ${t.rStage==='Scheduled'?'<div class="hint-warn">The reverse pickup hasn\'t been picked up yet.</div>':''}` : ''; };
+  sel.addEventListener('change', info); info();
+  $('#dpForm').addEventListener('submit', e=>{ e.preventDefault(); $('#dpSubmit').click(); });
+  $('#dpSubmit').addEventListener('click', async ()=>{
+    const msg=$('#dpMsg');
+    if(!sel.value){ msg.innerHTML='<div class="err">Choose a ticket.</div>'; return; }
+    if(!$('#dpAwb').value.trim()){ msg.innerHTML='<div class="err">Enter the Proship AWB number.</div>'; return; }
+    const b=$('#dpSubmit'); b.disabled=true; b.innerHTML='<span class="spin"></span>';
+    try{
+      const r = await api('exDispatch',{ticket:sel.value, awb:$('#dpAwb').value.trim()});
+      if(!r.ok) throw new Error(r.error);
+      const t = upsertTicket(r.row); $('#layer').innerHTML=''; toast(`${t.id}: exchange AWB saved · ${XCAT[t.stage].label}`);
+    }catch(e){ if(e.message!=='SESSION_EXPIRED'){ msg.innerHTML=`<div class="err">${esc(e.message)}</div>`; b.disabled=false; b.textContent='Save exchange AWB'; } }
+  });
+  setTimeout(()=>(sel.value?$('#dpAwb'):sel).focus(),60);
+}
+
+/* --- Right drawer: ticket details --- */
+function openTicket(t){
+  const o = S.byName && S.byName[t.order];
+  const isAdmin = S.me && S.me.r==='admin';
+  const stageSel = (id, stages, cur)=>`<select class="in" id="${id}" style="padding:6px 8px;margin-top:8px">${stages.map(s=>`<option ${s===cur?'selected':''}>${s}</option>`).join('')}</select>`;
+  $('#layer').innerHTML = `<div class="overlay" id="ov"><aside class="drawer" role="dialog" aria-label="Exchange ticket">
+    <div class="drawer-head"><h3>${esc(t.id)} · ${esc(t.order)}</h3><button class="x" data-close aria-label="Close">×</button></div>
+    <div style="padding:12px 16px 0"><span class="pill" style="--c:${XCAT[t.stage].color}">${esc(XCAT[t.stage].label)}</span></div>
+    <div class="two">
+      <div class="sbox"><h5>Reverse pickup</h5>${revPill(t)}
+        <div class="l">${t.via==='Self Courier'?'Self courier':'Delhivery · <span class="mono">'+esc(t.rawb)+'</span>'}</div>
+        ${t.rStatus?`<div class="l">${esc(t.rStatus)}</div>`:''}${t.rLoc?`<div class="l">${esc(t.rLoc)}</div>`:''}${t.rUpd?`<div class="l">${esc(fmtDate(t.rUpd))}</div>`:''}
+        ${t.via==='Self Courier'?stageSel('tkRev',['Scheduled','Picked Up','Delivered','Cancelled'],t.rStage):''}
+        ${t.rawb&&t.via!=='Self Courier'?`<div class="l"><a href="https://www.delhivery.com/track/package/${encodeURIComponent(t.rawb)}" target="_blank" rel="noopener">Track on Delhivery ↗</a></div>`:''}</div>
+      <div class="sbox"><h5>Exchange</h5>${excPill(t)}
+        ${t.xawb?`<div class="l">Proship · <span class="mono">${esc(t.xawb)}</span></div>`:''}
+        ${t.xStatus?`<div class="l">${esc(t.xStatus)}</div>`:''}${t.xLoc?`<div class="l">${esc(t.xLoc)}</div>`:''}
+        ${t.dispBy?`<div class="l">Dispatched by ${esc(t.dispBy)}${t.dispAt?' · '+esc(fmtDate(t.dispAt)):''}</div>`:''}
+        ${t.xawb&&!X.proship?stageSel('tkEx',['Scheduled','In Transit','Delivered','RTO'],t.xStage):''}
+        ${t.rStage!=='Cancelled'?`<button class="btn sm ${t.xawb?'':'primary'}" style="margin-top:10px" data-xdispatch="${esc(t.id)}">${t.xawb?'Change AWB':'Create exchange'}</button>`:''}</div>
+    </div>
+    <dl class="kv">
+      <div><dt>Products</dt><dd>${t.products.map(p=>`${esc(p.title)}${p.qty>1?' × '+p.qty:''}${p.sku?` <span style="color:var(--muted);font-size:12px">${esc(p.sku)}</span>`:''}`).join('<br>')||'-'}</dd></div>
+      <div><dt>New address</dt><dd>${t.address?esc(t.address).replace(/\n/g,'<br>'):'- (original address)'}</dd></div>
+      <div><dt>Created</dt><dd>${esc(fmtDate(t.created))} by ${esc(t.createdBy)}</dd></div>
+      <div><dt>Assigned to</dt><dd><select class="in" id="tkAssign" style="padding:6px 8px">${userOptions(t.assign)}</select></dd></div>
+      ${o?`<div><dt>Original order</dt><dd>${inr(o.value)} · ${esc(o.mode||'')} · ${esc(o.statusLabel)}<br><span style="color:var(--muted);font-size:12.5px">${esc(o.courier)} · ${esc(o.awb)}</span></dd></div>`:''}
+    </dl>
+    <div style="padding:0 16px 8px;display:flex;gap:8px"><input class="in" id="tkNote" placeholder="Add a note to the history…"><button class="btn" id="tkNoteBtn">Add</button></div>
+    ${t.history?`<div class="hist">${esc(t.history.split('\n').reverse().join('\n'))}</div>`:''}
+    <div class="drawer-actions">
+      ${o?`<button class="btn" data-openorder="${esc(o.name)}">View original order</button>`:''}
+      ${isAdmin?`<button class="btn danger" id="tkDelete">Delete ticket</button>`:''}
+    </div></aside></div>`;
+  const save = async (data, okMsg)=>{
+    try{ const r = await api('exUpdate', Object.assign({ticket:t.id}, data)); if(!r.ok) throw new Error(r.error);
+      const nt = upsertTicket(r.row); openTicket(nt); toast(okMsg); }
+    catch(e){ if(e.message!=='SESSION_EXPIRED'){ alert(e.message); openTicket(t); } }
+  };
+  $('#tkAssign').addEventListener('change', e=>save({assignTo:e.target.value}, 'Reassigned to '+e.target.value));
+  if($('#tkRev')) $('#tkRev').addEventListener('change', e=>save({reverseStage:e.target.value}, 'Reverse pickup updated'));
+  if($('#tkEx')) $('#tkEx').addEventListener('change', e=>save({exchangeStage:e.target.value}, 'Exchange status updated'));
+  $('#tkNoteBtn').addEventListener('click', ()=>{ const v=$('#tkNote').value.trim(); if(v) save({note:v}, 'Note added'); });
+  if($('#tkDelete')) $('#tkDelete').addEventListener('click', async ()=>{
+    if(!confirm(`Delete ${t.id}? This cannot be undone.`)) return;
+    const r = await api('exDelete',{ticket:t.id}).catch(e=>({ok:false,error:e.message}));
+    if(r.ok){ X.rows = X.rows.filter(x=>x.id!==t.id); renderExchange(); $('#layer').innerHTML=''; toast(t.id+' deleted'); } else alert(r.error);
+  });
+}
+function exportExchangeCsv(){
+  const list = xFiltered(xBase());
+  const head = ['Ticket','Order','Created','Created By','Pickup Via','Reverse AWB','Reverse Stage','Reverse Status','Exchange AWB','Exchange Stage','Exchange Status','Products','New Address','Assigned To','Tab'];
+  const rows = list.map(t=>[t.id,t.order,fmtDate(t.created),t.createdBy,t.via,t.rawb,t.rStage,t.rStatus,t.xawb,t.xStage,t.xStatus,t.productsText,t.address,t.assign,XCAT[t.stage].label]);
+  const csv = [head].concat(rows).map(r=>r.map(v=>{v=String(v==null?'':v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'}));
+  a.download=`rawayi-exchanges-${X.tab}-${new Date().toISOString().slice(0,10)}.csv`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+$('#exchangeView').addEventListener('click', async e=>{
+  const t = e.target.closest('button,[data-xi],th'); if(!t) return;
+  if(t.id==='exNewBtn'){ openCreate(); return; }
+  if(t.id==='exDispatchBtn'){ openDispatch(''); return; }
+  if(t.dataset.xdispatch){ openDispatch(t.dataset.xdispatch); return; }
+  if(t.id==='xTaskToggle'){ X.allTasks=!X.allTasks; renderExchange(); return; }
+  if(t.dataset.xtab){ X.tab=t.dataset.xtab; X.limit=PAGE; renderExchange(); $('#xpanel').scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  if(t.dataset.xsort){ const k=t.dataset.xsort; X.sort = X.sort.k===k?{k,d:-X.sort.d}:{k,d:(k==='created'||k==='age')?-1:1}; renderExchange(); return; }
+  if(t.id==='xMoreBtn'){ X.limit+=PAGE; renderExchange(); return; }
+  if(t.id==='xExportBtn'){ exportExchangeCsv(); return; }
+  if(t.dataset.xi!==undefined){ openTicket(X.visible[+t.dataset.xi]); return; }
+  if(t.id==='exSyncBtn'){
+    if(X.busy) return; X.busy=true; t.disabled=true; const old=t.textContent; t.innerHTML='<span class="spin"></span> Checking couriers…';
+    try{ const r = await api('exSync'); if(r.exchanges) setExchanges(r.exchanges); renderExchange(); toast(r.ok?'Courier statuses refreshed':(r.error||'Refresh failed')); }
+    catch(err){ if(err.message!=='SESSION_EXPIRED') toast(err.message); }
+    finally{ X.busy=false; t.disabled=false; t.textContent=old; }
+  }
+});
+$('#layer').addEventListener('click', e=>{ const b=e.target.closest('[data-xdispatch]'); if(b) openDispatch(b.dataset.xdispatch); });
+$('#xq').addEventListener('input', e=>{ X.q=e.target.value; X.limit=PAGE; clearTimeout(X.qt); X.qt=setTimeout(renderExchange,150); });
+$('#xAssignSel').addEventListener('change', e=>{ X.assign=e.target.value; X.limit=PAGE; renderExchange(); });
 
 /* ---------- Packed-by scanning ---------- */
 const P = { active:false, packers:[], packer:'', scans:[], queue:Promise.resolve(), stream:null, camTimer:null, lastCam:{} };
@@ -1025,7 +1427,7 @@ $('#packBtn').addEventListener('click', ()=>{ P.active ? closePack() : openPack(
 /* ---------- Boot ---------- */
 (async function boot(){
   try{ S.token = localStorage.getItem(TOKEN_KEY); }catch(e){}
-  try{ const v = localStorage.getItem('rawayi_view'); if(v==='returns') setView('returns'); }catch(e){}
+  try{ const v = localStorage.getItem('rawayi_view'); if(v==='returns'||v==='exchange') setView(v); }catch(e){}
   if(S.token){ startApp(); return; }
   try{
     const r = await api('status');
