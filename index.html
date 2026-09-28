@@ -181,6 +181,10 @@ td.loc{max-width:260px;overflow:hidden;text-overflow:ellipsis}
 .rm{border:0;background:none;color:#b42318;font-size:18px;width:26px;height:26px}
 .form-foot{position:sticky;bottom:0;background:#fff;padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px}
 .form-foot .btn.primary{flex:1;padding:12px}
+.icon-btn{display:inline-grid;place-items:center;width:32px;height:32px;border:1px solid var(--line);background:#fff;border-radius:8px;color:var(--muted);margin-left:4px}
+.icon-btn:hover{color:var(--brand);border-color:var(--brand);background:#f6f4ef}
+.icon-btn.del:hover{color:#b42318;border-color:#f3c6c1;background:#fdf1ef}
+td.acts-cell{text-align:right;white-space:nowrap;padding-right:14px}
 @media (max-width:760px){.two{grid-template-columns:1fr}.form .row2{grid-template-columns:1fr}.ex-actions .btn:not(.sm){flex:1}}
 .drawer-head{display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff}
 .drawer-head h3{margin:0;font-size:17px;flex:1}
@@ -1066,22 +1070,23 @@ function renderExchange(){
   $('#xAssignSel').innerHTML = `<option value="">Everyone</option><option value="__me" ${X.assign==='__me'?'selected':''}>Assigned to me</option>`+assignees.map(a=>`<option value="${esc(a)}" ${X.assign===a?'selected':''}>${esc(a)}</option>`).join('');
 
   const list = xFiltered(base), vis = list.slice(0,X.limit); X.visible = vis;
-  const cols=[['id','Ticket'],['order','Order'],['created','Created'],['productsText','Products'],['rStage','Reverse pickup'],['xStage','Exchange'],['assign','Assigned to'],['age','Age','num']];
-  $('#xthead').innerHTML = '<tr>'+cols.map(([k,l,c])=>`<th class="${c||''}" data-xsort="${k}">${l} ${X.sort.k===k?`<span class="arr">${X.sort.d>0?'▲':'▼'}</span>`:''}</th>`).join('')+'</tr>';
+  const cols=[['id','Ticket'],['order','Order'],['created','Created'],['productsText','Products'],['rStage','Reverse pickup'],['xStage','Exchange'],['assign','Assigned to'],['age','Age','num'],['','']];
+  $('#xthead').innerHTML = '<tr>'+cols.map(([k,l,c])=>!k?'<th style="cursor:default"></th>':`<th class="${c||''}" data-xsort="${k}">${l} ${X.sort.k===k?`<span class="arr">${X.sort.d>0?'▲':'▼'}</span>`:''}</th>`).join('')+'</tr>';
   const awbLine = (awb, via)=> via==='Self Courier' ? '<span class="tag">Self courier</span>' : awb ? `<span class="mono" style="font-size:12px">${esc(awb)}</span>` : '';
   $('#xtbody').innerHTML = vis.map((t,i)=>`<tr data-xi="${i}">
     <td><b>${esc(t.id)}</b></td><td>${esc(t.order)}</td><td>${esc(fmtDate(t.created))}</td>
     <td class="loc" title="${esc(t.productsText)}" style="max-width:220px">${esc(t.productsText)}</td>
     <td><div class="dual">${revPill(t)}${awbLine(t.rawb,t.via)}</div></td>
     <td><div class="dual">${excPill(t)}${t.xawb?`<span class="mono" style="font-size:12px">${esc(t.xawb)}</span>`:''}</div></td>
-    <td>${esc(t.assign)}${isMe(t.assign)?' <span class="tag">you</span>':''}</td><td class="num">${t.ageDays!=null?t.ageDays+'d':''}</td></tr>`).join('');
+    <td>${esc(t.assign)}${isMe(t.assign)?' <span class="tag">you</span>':''}</td><td class="num">${t.ageDays!=null?t.ageDays+'d':''}</td>
+    <td class="acts-cell"><button class="icon-btn" data-xedit="${esc(t.id)}" title="Edit ${esc(t.id)}" aria-label="Edit ${esc(t.id)}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>${canDeleteTicket(t)?`<button class="icon-btn del" data-xdel="${esc(t.id)}" title="Delete ${esc(t.id)}" aria-label="Delete ${esc(t.id)}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button>`:''}</td></tr>`).join('');
   $('#xcards').innerHTML = vis.map((t,i)=>`<div class="ocard" data-xi="${i}">
-    <div class="r1"><b>${esc(t.id)} · ${esc(t.order)}</b><span class="tag">${esc(t.assign)}</span></div>
+    <div class="r1"><b>${esc(t.id)} · ${esc(t.order)}</b><span style="display:flex;gap:4px;align-items:center"><span class="tag">${esc(t.assign)}</span><button class="icon-btn" data-xedit="${esc(t.id)}" aria-label="Edit"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>${canDeleteTicket(t)?`<button class="icon-btn del" data-xdel="${esc(t.id)}" aria-label="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button>`:''}</span></div>
     <div class="r2"><span>${esc(t.productsText)}</span></div>
     <div class="r1" style="margin-top:6px;justify-content:flex-start;gap:6px;flex-wrap:wrap">${revPill(t)}${excPill(t)}</div></div>`).join('');
   if(!list.length){
     const msg = X.rows.length ? 'No exchanges here.' : 'No exchange tickets yet — click “Create reverse pickup” to start.';
-    $('#xtbody').innerHTML = `<tr><td colspan="8" class="empty">${msg}</td></tr>`; $('#xcards').innerHTML = `<div class="empty">${msg}</div>`;
+    $('#xtbody').innerHTML = `<tr><td colspan="9" class="empty">${msg}</td></tr>`; $('#xcards').innerHTML = `<div class="empty">${msg}</div>`;
   }
   $('#xFootCount').textContent = `Showing ${vis.length} of ${list.length} exchanges`;
   $('#xFootMore').innerHTML = list.length>vis.length ? `<button class="btn sm" id="xMoreBtn">Show more</button>` : '';
@@ -1095,30 +1100,42 @@ async function loadProducts(force){
   X.products = r.products.map(p=>({id:p.id,title:p.title,sku:p.sku,s:(p.title+' '+p.sku).toLowerCase()}));
   return X.products;
 }
-function openCreate(){
-  const F = { picked:[], hl:0 };
-  $('#layer').innerHTML = `<div class="overlay left" id="ov"><aside class="drawer" role="dialog" aria-label="Create reverse pickup">
-    <div class="drawer-head"><h3>Create reverse pickup</h3><button class="x" data-close aria-label="Close">×</button></div>
+function canDeleteTicket(t){ return S.me && (S.me.r==='admin' || isMe(t.createdBy)); }
+async function deleteTicket(t){
+  if(!confirm(`Delete ${t.id} (${t.order})?\n\nThis removes the reverse pickup ticket from the portal. A backup copy is kept in the sheet.`)) return false;
+  const r = await api('exDelete',{ticket:t.id}).catch(e=>({ok:false,error:e.message}));
+  if(r.ok){ X.rows = X.rows.filter(x=>x.id!==t.id); renderExchange(); $('#layer').innerHTML=''; toast(t.id+' deleted'); return true; }
+  if(r.error!=='SESSION_EXPIRED') alert(r.error); return false;
+}
+/** Create a new reverse pickup, or edit an existing ticket when E (a ticket) is passed. */
+function openCreate(E){
+  const F = { picked: E ? E.products.map(p=>({id:p.id||p.title, title:p.title, sku:p.sku||'', qty:p.qty||1})) : [], hl:0 };
+  $('#layer').innerHTML = `<div class="overlay left" id="ov"><aside class="drawer" role="dialog" aria-label="${E?'Edit exchange ticket':'Create reverse pickup'}">
+    <div class="drawer-head"><h3>${E?`Edit ${esc(E.id)} · ${esc(E.order)}`:'Create reverse pickup'}</h3><button class="x" data-close aria-label="Close">×</button></div>
     <form class="form" id="crForm" autocomplete="off">
+      ${E ? `<div class="hint-ok" style="background:#f6f4ef;color:var(--ink);margin-top:10px">Created by <b>${esc(E.createdBy)}</b> · assigned to <b>${esc(E.assign)}</b><br><span style="color:var(--muted)">You can change the reverse pickup AWB, products, address${E.xawb?' and exchange AWB':''} here.</span></div>
+      <input type="hidden" id="crOrder" value="${esc(E.order)}"><div id="crOrderHint"></div>` : `
       <label class="f">Pickup created by <span class="req">*</span></label>
       <select class="in" id="crBy" required>${userOptions(S.me&&S.me.u)}</select>
       <label class="f">Order ID <span class="req">*</span></label>
       <input class="in" id="crOrder" placeholder="e.g. 21116" required inputmode="numeric">
-      <div id="crOrderHint"></div>
+      <div id="crOrderHint"></div>`}
       <label class="f">Reverse pickup via <span class="req">*</span></label>
       <select class="in" id="crVia"><option value="Delhivery">Delhivery AWB no.</option><option value="Self Courier">Self courier (customer ships it)</option></select>
-      <div id="crAwbWrap"><label class="f">Delhivery AWB no. <span class="req">*</span></label><input class="in mono" id="crAwb" placeholder="Reverse pickup AWB" inputmode="numeric"></div>
+      <div id="crAwbWrap"><label class="f">Delhivery AWB no. <span class="req">*</span></label><input class="in mono" id="crAwb" placeholder="Reverse pickup AWB" inputmode="numeric">
+        ${E?'<div class="help">Changing the AWB restarts reverse pickup tracking for this ticket.</div>':''}</div>
       <label class="f">Products for exchange <span class="req">*</span></label>
       <div class="combo"><input class="in" id="crProd" placeholder="Loading Shopify products…" disabled><div class="combo-list hidden" id="crList"></div></div>
       <div class="help" id="crProdHelp">Search by name, colour, size or SKU. Add as many as needed.</div>
       <div class="picked" id="crPicked"></div>
       <label class="f">New delivery address <span style="text-transform:none;font-weight:500">(optional)</span></label>
       <textarea class="in" id="crAddr" placeholder="Only if the customer wants the exchange at a different address — include name, phone, pincode"></textarea>
+      ${E ? (E.xawb ? `<label class="f">Exchange AWB no. (Proship)</label><input class="in mono" id="crXawb" value="${esc(E.xawb)}"><div class="help">Clear it to undo the dispatch. Changing it restarts exchange tracking.</div>` : '') : `
       <label class="f">Assign ticket to <span class="req">*</span></label>
-      <select class="in" id="crAssign" required>${userOptions('', 'Choose who creates the exchange…')}</select>
+      <select class="in" id="crAssign" required>${userOptions('', 'Choose who creates the exchange…')}</select>`}
       <div id="crMsg"></div>
     </form>
-    <div class="form-foot"><button class="btn" data-close type="button">Cancel</button><button class="btn primary" id="crSubmit" type="button">Create reverse pickup</button></div>
+    <div class="form-foot">${E&&canDeleteTicket(E)?'<button class="btn danger" id="crDelete" type="button" title="Delete this pickup">Delete</button>':''}<button class="btn" data-close type="button">Cancel</button><button class="btn primary" id="crSubmit" type="button">${E?'Save changes':'Create reverse pickup'}</button></div>
   </aside></div>`;
   const orderIn=$('#crOrder'), via=$('#crVia'), prodIn=$('#crProd'), listEl=$('#crList');
   orderIn.addEventListener('input', ()=>{
@@ -1159,8 +1176,27 @@ function openCreate(){
     else if(b.dataset.rm!==undefined){ F.picked.splice(+b.dataset.rm,1); drawPicked(); }
   });
   $('#crForm').addEventListener('submit', e=>e.preventDefault());
+  if(E){ // prefill for editing
+    via.value = E.via==='Self Courier' ? 'Self Courier' : 'Delhivery'; show($('#crAwbWrap'), via.value==='Delhivery');
+    $('#crAwb').value = E.rawb||''; $('#crAddr').value = E.address||''; drawPicked();
+    if($('#crDelete')) $('#crDelete').addEventListener('click', ()=>deleteTicket(E));
+  }
   $('#crSubmit').addEventListener('click', async ()=>{
     const v = orderIn.value.trim(), msg = $('#crMsg');
+    if(E){
+      const err = via.value==='Delhivery' && !$('#crAwb').value.trim() ? 'Enter the Delhivery AWB number.' : !F.picked.length ? 'Keep at least one product.' : '';
+      if(err){ msg.innerHTML = `<div class="err">${esc(err)}</div>`; return; }
+      const b = $('#crSubmit'); b.disabled = true; b.innerHTML = '<span class="spin"></span>';
+      try{
+        const data = { ticket:E.id, via:via.value, awb:$('#crAwb').value.trim(), products:F.picked, address:$('#crAddr').value.trim() };
+        if($('#crXawb')) data.exchangeAwb = $('#crXawb').value.trim();
+        const r = await api('exEdit', data);
+        if(!r.ok) throw new Error(r.error);
+        const t = upsertTicket(r.row); $('#layer').innerHTML='';
+        toast(r.unchanged ? 'No changes to save' : `${t.id} updated · ${XCAT[t.stage].label}`);
+      }catch(e2){ if(e2.message!=='SESSION_EXPIRED'){ msg.innerHTML = `<div class="err">${esc(e2.message)}</div>`; b.disabled=false; b.textContent='Save changes'; } }
+      return;
+    }
     const err = !v ? 'Enter the order ID.' : via.value==='Delhivery' && !$('#crAwb').value.trim() ? 'Enter the Delhivery AWB number.' : !F.picked.length ? 'Add at least one product.' : !$('#crAssign').value ? 'Choose who to assign the ticket to.' : '';
     if(err){ msg.innerHTML = `<div class="err">${esc(err)}</div>`; return; }
     const b = $('#crSubmit'); b.disabled = true; b.innerHTML = '<span class="spin"></span>';
@@ -1171,7 +1207,7 @@ function openCreate(){
       $('#layer').innerHTML=''; toast(`${t.id} created · ${XCAT[t.stage].label}`);
     }catch(e2){ if(e2.message!=='SESSION_EXPIRED'){ msg.innerHTML = `<div class="err">${esc(e2.message)}</div>`; b.disabled=false; b.textContent='Create reverse pickup'; } }
   });
-  setTimeout(()=>orderIn.focus(),60);
+  setTimeout(()=>(E?$('#crAwb'):orderIn).focus(),60);
   loadProducts().then(()=>{ if(!document.body.contains(prodIn)) return; prodIn.disabled=false; prodIn.placeholder=`Search ${X.products.length} Shopify products…`; })
     .catch(e=>{ if(!document.body.contains(prodIn)) return; prodIn.placeholder='Products could not load'; $('#crProdHelp').innerHTML = `<span style="color:#b42318">${esc(e.message)}</span>`; });
 }
@@ -1246,7 +1282,8 @@ function openTicket(t){
     ${t.history?`<div class="hist">${esc(t.history.split('\n').reverse().join('\n'))}</div>`:''}
     <div class="drawer-actions">
       ${o?`<button class="btn" data-openorder="${esc(o.name)}">View original order</button>`:''}
-      ${isAdmin?`<button class="btn danger" id="tkDelete">Delete ticket</button>`:''}
+      <button class="btn primary" id="tkEdit"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit ticket</button>
+      ${canDeleteTicket(t)?`<button class="btn danger" id="tkDelete">Delete pickup</button>`:''}
     </div></aside></div>`;
   const save = async (data, okMsg)=>{
     try{ const r = await api('exUpdate', Object.assign({ticket:t.id}, data)); if(!r.ok) throw new Error(r.error);
@@ -1257,11 +1294,8 @@ function openTicket(t){
   if($('#tkRev')) $('#tkRev').addEventListener('change', e=>save({reverseStage:e.target.value}, 'Reverse pickup updated'));
   if($('#tkEx')) $('#tkEx').addEventListener('change', e=>save({exchangeStage:e.target.value}, 'Exchange status updated'));
   $('#tkNoteBtn').addEventListener('click', ()=>{ const v=$('#tkNote').value.trim(); if(v) save({note:v}, 'Note added'); });
-  if($('#tkDelete')) $('#tkDelete').addEventListener('click', async ()=>{
-    if(!confirm(`Delete ${t.id}? This cannot be undone.`)) return;
-    const r = await api('exDelete',{ticket:t.id}).catch(e=>({ok:false,error:e.message}));
-    if(r.ok){ X.rows = X.rows.filter(x=>x.id!==t.id); renderExchange(); $('#layer').innerHTML=''; toast(t.id+' deleted'); } else alert(r.error);
-  });
+  $('#tkEdit').addEventListener('click', ()=>openCreate(t));
+  if($('#tkDelete')) $('#tkDelete').addEventListener('click', ()=>deleteTicket(t));
 }
 function exportExchangeCsv(){
   const list = xFiltered(xBase());
@@ -1281,6 +1315,8 @@ $('#exchangeView').addEventListener('click', async e=>{
   if(t.dataset.xsort){ const k=t.dataset.xsort; X.sort = X.sort.k===k?{k,d:-X.sort.d}:{k,d:(k==='created'||k==='age')?-1:1}; renderExchange(); return; }
   if(t.id==='xMoreBtn'){ X.limit+=PAGE; renderExchange(); return; }
   if(t.id==='xExportBtn'){ exportExchangeCsv(); return; }
+  if(t.dataset.xedit){ const k=X.rows.find(x=>x.id===t.dataset.xedit); if(k) openCreate(k); return; }
+  if(t.dataset.xdel){ const k=X.rows.find(x=>x.id===t.dataset.xdel); if(k) deleteTicket(k); return; }
   if(t.dataset.xi!==undefined){ openTicket(X.visible[+t.dataset.xi]); return; }
   if(t.id==='exSyncBtn'){
     if(X.busy) return; X.busy=true; t.disabled=true; const old=t.textContent; t.innerHTML='<span class="spin"></span> Checking couriers…';
