@@ -479,11 +479,18 @@ function col(headers, ...keys){
 }
 function parseDate(s){
   if(!s) return null;
-  let d = new Date(s);
-  if(!isNaN(d)) return d;
-  const m = String(s).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/); // dd/mm/yyyy
-  if(m){ d = new Date(+(m[3].length===2?'20'+m[3]:m[3]), +m[2]-1, +m[1]); if(!isNaN(d)) return d; }
-  return null;
+  if(s instanceof Date) return isNaN(s) ? null : s;
+  const str = String(s).trim();
+  // Sheet dates in Indian format: dd/mm/yyyy [hh:mm[:ss]] — read day first (the browser would read it as mm/dd)
+  const m = str.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})(?:[ ,T]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap]m)?)?$/i);
+  if(m){
+    let h = +(m[4]||0); if(m[7]){ const pm = /p/i.test(m[7]); if(pm && h<12) h+=12; if(!pm && h===12) h=0; }
+    let day = +m[1], mon = +m[2]; if(mon > 12 && day <= 12){ const t = day; day = mon; mon = t; }   // 9/26/2026 is clearly month-first
+    const d = new Date(+(m[3].length===2?'20'+m[3]:m[3]), mon-1, day, h, +(m[5]||0), +(m[6]||0));
+    if(!isNaN(d)) return d;
+  }
+  const d = new Date(str);
+  return isNaN(d) ? null : d;
 }
 function classify(o){
   const s = o.status.toLowerCase().trim();
