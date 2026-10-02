@@ -368,6 +368,7 @@ td.acts-cell{text-align:right;white-space:nowrap;padding-right:14px}
         <div class="ex-actions">
           <button class="btn primary" id="exNewBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Create reverse pickup</button>
           <button class="btn" id="exDispatchBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>Dispatch an exchange</button>
+          <button class="btn" id="exRedispatchBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/></svg>Dispatch order again</button>
           <div class="spacer"></div>
           <span class="sync" id="exSyncInfo"></span>
           <button class="btn sm" id="exSyncBtn">Refresh courier statuses</button>
@@ -652,7 +653,7 @@ function openOrder(o){
     <div style="padding:14px 16px 4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="pill" style="--c:${CAT[o.cat].color}">${esc(o.statusLabel)}</span><span class="tag">${esc(CAT[o.cat].label)}</span>${o.mode?`<span class="tag ${o.mode==='COD'?'cod':'pre'}">${o.mode}</span>`:''}${o.ageDays!=null?`<span class="tag">${o.ageDays} days since order</span>`:''}</div>
     ${o.note && o.note!==o.status ? `<div class="banner" style="margin:10px 16px 0">${esc(o.note)}</div>`:''}
     ${(S.returnsByOrder&&S.returnsByOrder[o.name]||[]).map(x=>`<div class="ret-note">Customer return ${esc(x.rid)}: <b>${esc(x.statusLabel)}</b>${x.dstatus?' · '+esc(x.dstatus):''}</div>`).join('')}
-    ${X.rows.filter(t=>t.order===o.name).map(t=>`<div class="ret-note" style="background:#eef3fb;border-color:#cddcf3;color:#1d3f75;cursor:pointer" data-openticket="${esc(t.id)}">Exchange ${esc(t.id)}: <b>${esc(XCAT[t.stage].label)}</b> — tap to open</div>`).join('')}
+    ${X.rows.filter(t=>t.order===o.name).map(t=>`<div class="ret-note" style="background:#eef3fb;border-color:#cddcf3;color:#1d3f75;cursor:pointer" data-openticket="${esc(t.id)}">${esc(TYPE_LABEL[t.type]||'Exchange')} ${esc(t.id)}: <b>${esc(XCAT[t.stage].label)}</b> — tap to open</div>`).join('')}
     <dl class="kv">${extra.map(([h,v])=>`<div><dt>${esc(h)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
     <div class="drawer-actions">
       ${url?`<a class="btn primary" href="${esc(url)}" target="_blank" rel="noopener">Track on courier site ↗</a>`:''}
@@ -990,15 +991,17 @@ const XCATS = [
   {key:'rp_scheduled', label:'Reverse Pickup Scheduled',  color:'#7a5cc4'},
   {key:'rp_done',      label:'Reverse Pickup Done',       color:'#0f8f9a'},
   {key:'rp_delivered', label:'Reverse Pickup Delivered',  color:'#2f6fd6'},
-  {key:'ex_scheduled', label:'Exchange Scheduled',        color:'#b8864b'},
-  {key:'ex_transit',   label:'Exchange In Transit',       color:'#d9822b'},
-  {key:'ex_delivered', label:'Exchange Delivered',        color:'#1f9d55'},
+  {key:'ex_scheduled', label:'Exchange/RTO/Missing Items Scheduled',  color:'#b8864b'},
+  {key:'ex_transit',   label:'Exchange/RTO/Missing Items In Transit', color:'#d9822b'},
+  {key:'ex_delivered', label:'Exchange/RTO/Missing Items Delivered',  color:'#1f9d55'},
   {key:'rp_cancelled', label:'Reverse Pickup Cancelled',  color:'#6b6f7a'},
-  {key:'ex_rto',       label:'Exchange RTO',              color:'#d64545'},
+  {key:'ex_rto',       label:'Exchange/RTO/Missing Items RTO',        color:'#d64545'},
+  {key:'redispatch',   label:'RTO/Missing Orders Dispatch',           color:'#8e3b8e'},
 ];
+const TYPE_LABEL = {'Exchange':'Exchange','RTO':'RTO re-dispatch','Missing Items':'Missing items'};
 const XCAT = Object.fromEntries(XCATS.map(c=>[c.key,c]));
 const REV_LABEL = {'Scheduled':['Pickup scheduled','#7a5cc4'],'Picked Up':['Picked up · in transit','#0f8f9a'],'Delivered':['Received at warehouse','#2f6fd6'],'Cancelled':['Pickup cancelled','#6b6f7a']};
-const EXC_LABEL = {'':['Not dispatched yet','#9aa0a6'],'Scheduled':['Exchange scheduled','#b8864b'],'In Transit':['Exchange in transit','#d9822b'],'Delivered':['Exchange delivered','#1f9d55'],'RTO':['Exchange RTO','#d64545']};
+const EXC_LABEL = {'':['Not dispatched yet','#9aa0a6'],'Scheduled':['scheduled','#b8864b'],'In Transit':['in transit','#d9822b'],'Delivered':['delivered','#1f9d55'],'RTO':['RTO','#d64545']};
 const X = { rows:[], error:'', proship:false, users:[], products:null, tab:'all', q:'', assign:'', sort:{k:'created',d:-1}, limit:PAGE, visible:[], allTasks:false, busy:false };
 
 function mapTicket(o){
@@ -1007,15 +1010,18 @@ function mapTicket(o){
   const t = {
     raw:o, id:o['Ticket ID'], created:parseDate(o['Created At']), createdBy:o['Created By'], order:o['Order'], via:o['Pickup Via']||'Delhivery',
     rawb:o['Reverse AWB'], products:prods, address:o['New Address'], assign:o['Assigned To'],
-    rStatus:o['Reverse Status'], rStage:o['Reverse Stage']||'Scheduled', rLoc:o['Reverse Location'], rUpd:parseDate(o['Reverse Updated']),
+    type:o['Ticket Type']||'Exchange', xcourier:o['Dispatch Courier']||(o['Exchange AWB']?'Proship':''),
+    rStatus:o['Reverse Status'], rStage:(o['Ticket Type']&&o['Ticket Type']!=='Exchange') ? '' : (o['Reverse Stage']||'Scheduled'), rLoc:o['Reverse Location'], rUpd:parseDate(o['Reverse Updated']),
     xawb:o['Exchange AWB'], xStatus:o['Exchange Status'], xStage:o['Exchange AWB'] ? (o['Exchange Stage']||'Scheduled') : '', xLoc:o['Exchange Location'], xUpd:parseDate(o['Exchange Updated']),
     dispBy:o['Dispatched By'], dispAt:parseDate(o['Dispatched At']), synced:parseDate(o['Last Synced']), history:o['History']||''
   };
   t.stage = t.xawb ? ({'RTO':'ex_rto','Delivered':'ex_delivered','In Transit':'ex_transit'}[t.xStage]||'ex_scheduled')
+                   : t.type!=='Exchange' ? 'redispatch'
                    : ({'Cancelled':'rp_cancelled','Delivered':'rp_delivered','Picked Up':'rp_done'}[t.rStage]||'rp_scheduled');
+  t.isRD = t.type!=='Exchange';
   t.ageDays = t.created ? Math.floor((Date.now()-t.created)/86400000) : null;
   t.productsText = prods.map(p=>p.title+(p.qty>1?' × '+p.qty:'')).join(', ');
-  t.search = [t.id,t.order,t.rawb,t.xawb,t.productsText,t.assign,t.createdBy,t.address].join(' ').toLowerCase();
+  t.search = [t.id,t.order,t.rawb,t.xawb,t.productsText,t.assign,t.createdBy,t.address,TYPE_LABEL[t.type]||t.type,t.xcourier].join(' ').toLowerCase();
   return t;
 }
 function setExchanges(ex){
@@ -1028,9 +1034,12 @@ function upsertTicket(o){
   renderExchange(); return t;
 }
 const isMe = n => S.me && String(n||'').toLowerCase()===S.me.u.toLowerCase();
-function isTask(t){ return !t.xawb && (t.rStage==='Picked Up' || t.rStage==='Delivered'); }
-function revPill(t){ const [l,c] = REV_LABEL[t.rStage]||REV_LABEL['Scheduled']; return `<span class="pill" style="--c:${c}">${esc(l)}</span>`; }
-function excPill(t){ const [l,c] = EXC_LABEL[t.xStage]||EXC_LABEL['']; return `<span class="pill" style="--c:${c}">${esc(l)}</span>`; }
+function isTask(t){ return !t.xawb && (t.isRD || t.rStage==='Picked Up' || t.rStage==='Delivered'); }
+function typePill(t){ return `<span class="pill" style="--c:#8e3b8e">${esc(TYPE_LABEL[t.type]||t.type)}</span>`; }
+function revPill(t){ if(t.isRD) return typePill(t); const [l,c] = REV_LABEL[t.rStage]||REV_LABEL['Scheduled']; return `<span class="pill" style="--c:${c}">${esc(l)}</span>`; }
+function excPill(t){ const [l,c] = EXC_LABEL[t.xStage]||EXC_LABEL['']; const word = t.isRD ? 'Re-dispatch' : 'Exchange';
+  return `<span class="pill" style="--c:${c}">${esc(t.xStage ? word+' '+l : l)}</span>`; }
+const dispatchWord = t => t.isRD ? 'Dispatch' : 'Create exchange';
 function userOptions(sel, placeholder){
   const list = X.users.length ? X.users : (S.me?[S.me.u]:[]);
   return (placeholder?`<option value="">${esc(placeholder)}</option>`:'') + list.map(u=>`<option value="${esc(u)}" ${u===sel?'selected':''}>${esc(u)}${isMe(u)?' (you)':''}</option>`).join('');
@@ -1060,24 +1069,24 @@ function renderExchange(){
   const isAdmin = S.me && S.me.r==='admin';
   const tasks = (X.allTasks && isAdmin ? X.rows.filter(isTask) : mine).sort((a,b)=>(a.rUpd||a.created||0)-(b.rUpd||b.created||0));
   $('#exTasks').innerHTML = (tasks.length || (isAdmin && X.rows.some(isTask))) ? `<div class="tasks">
-    <div class="tasks-head"><h3>${X.allTasks&&isAdmin?'All pending exchange tasks':'Your pending tasks'} · ${tasks.length}</h3><span class="sync">Reverse pickup is on its way back — create the exchange and add the Proship AWB.</span><div class="spacer"></div>
+    <div class="tasks-head"><h3>${X.allTasks&&isAdmin?'All pending exchange tasks':'Your pending tasks'} · ${tasks.length}</h3><span class="sync">Ready to dispatch — reverse pickups on their way back, and RTO / missing-items orders to send again. Add the AWB.</span><div class="spacer"></div>
     ${isAdmin?`<button class="btn sm" id="xTaskToggle">${X.allTasks?'Show only mine':'Show everyone\'s'}</button>`:''}</div>
     ${tasks.map(t=>`<div class="task"><div class="t1">${esc(t.id)} · ${esc(t.order)} ${revPill(t)}</div>
-      <button class="btn primary sm" data-xdispatch="${esc(t.id)}">Create exchange</button>
-      <div class="t2">${esc(t.productsText)}${t.address?' · New address':''}${X.allTasks?' · Assigned to '+esc(t.assign):''}${t.rLoc?' · '+esc(t.rLoc):''}</div></div>`).join('') || '<div class="task"><div class="t2">Nothing pending for you.</div></div>'}
+      <button class="btn primary sm" data-xdispatch="${esc(t.id)}">${dispatchWord(t)}</button>
+      <div class="t2">${esc(t.productsText||(t.type==='RTO'?'Whole order (RTO)':''))}${t.address?' · New address':''}${X.allTasks?' · Assigned to '+esc(t.assign):''}${t.rLoc?' · '+esc(t.rLoc):''}</div></div>`).join('') || '<div class="task"><div class="t2">Nothing pending for you.</div></div>'}
   </div>` : '';
 
   const base = xBase();
   const cnt = {}; XCATS.forEach(c=>cnt[c.key]=0);
   base.forEach(t=>{ cnt[t.stage]++; cnt.all++; });
-  $('#xtabs').innerHTML = XCATS.map(c=>`<button class="tab ${X.tab===c.key?'on':''}" style="--c:${c.color}" data-xtab="${c.key}"><div class="t-label">${esc(c.label)}</div><div class="t-count">${cnt[c.key]}</div><div class="t-sub">${c.key!=='all'&&cnt.all?Math.round(cnt[c.key]*100/cnt.all)+'% of exchanges':'&nbsp;'}</div></button>`).join('');
+  $('#xtabs').innerHTML = XCATS.map(c=>`<button class="tab ${X.tab===c.key?'on':''}" style="--c:${c.color}" data-xtab="${c.key}"><div class="t-label" style="display:block">${esc(c.label).replace(/\//g,'/<wbr>')}</div><div class="t-count">${cnt[c.key]}</div><div class="t-sub">${c.key!=='all'&&cnt.all?Math.round(cnt[c.key]*100/cnt.all)+'% of exchanges':'&nbsp;'}</div></button>`).join('');
   const cat = XCAT[X.tab];
   $('#xTitle').innerHTML = `<span class="dot" style="--c:${cat.color}"></span>${esc(cat.label)}`;
   const assignees = [...new Set(X.rows.map(t=>t.assign).filter(Boolean))].sort();
   $('#xAssignSel').innerHTML = `<option value="">Everyone</option><option value="__me" ${X.assign==='__me'?'selected':''}>Assigned to me</option>`+assignees.map(a=>`<option value="${esc(a)}" ${X.assign===a?'selected':''}>${esc(a)}</option>`).join('');
 
   const list = xFiltered(base), vis = list.slice(0,X.limit); X.visible = vis;
-  const cols=[['id','Ticket'],['order','Order'],['created','Created'],['productsText','Products'],['rStage','Reverse pickup'],['xStage','Exchange'],['assign','Assigned to'],['age','Age','num'],['','']];
+  const cols=[['id','Ticket'],['order','Order'],['created','Created'],['productsText','Products'],['rStage','Reverse pickup / type'],['xStage','Dispatch'],['assign','Assigned to'],['age','Age','num'],['','']];
   $('#xthead').innerHTML = '<tr>'+cols.map(([k,l,c])=>!k?'<th style="cursor:default"></th>':`<th class="${c||''}" data-xsort="${k}">${l} ${X.sort.k===k?`<span class="arr">${X.sort.d>0?'▲':'▼'}</span>`:''}</th>`).join('')+'</tr>';
   const awbLine = (awb, via)=> via==='Self Courier' ? '<span class="tag">Self courier</span>' : awb ? `<span class="mono" style="font-size:12px">${esc(awb)}</span>` : '';
   $('#xtbody').innerHTML = vis.map((t,i)=>`<tr data-xi="${i}">
@@ -1115,34 +1124,44 @@ async function deleteTicket(t){
   if(r.error!=='SESSION_EXPIRED') alert(r.error); return false;
 }
 /** Create a new reverse pickup, or edit an existing ticket when E (a ticket) is passed. */
-function openCreate(E){
+/** mode 'redispatch' = "Dispatch order again" (RTO / missing items). E = existing ticket to edit. */
+function openCreate(E, mode){
+  const RD = mode==='redispatch' || !!(E && E.isRD);
   const F = { picked: E ? E.products.map(p=>({id:p.id||p.title, title:p.title, sku:p.sku||'', qty:p.qty||1})) : [], hl:0 };
-  $('#layer').innerHTML = `<div class="overlay left" id="ov"><aside class="drawer" role="dialog" aria-label="${E?'Edit exchange ticket':'Create reverse pickup'}">
-    <div class="drawer-head"><h3>${E?`Edit ${esc(E.id)} · ${esc(E.order)}`:'Create reverse pickup'}</h3><button class="x" data-close aria-label="Close">×</button></div>
+  const title = E ? `Edit ${esc(E.id)} · ${esc(E.order)}` : RD ? 'Dispatch order again' : 'Create reverse pickup';
+  const submitText = E ? 'Save changes' : RD ? 'Create dispatch-again ticket' : 'Create reverse pickup';
+  $('#layer').innerHTML = `<div class="overlay left" id="ov"><aside class="drawer" role="dialog" aria-label="${title}">
+    <div class="drawer-head"><h3>${title}</h3><button class="x" data-close aria-label="Close">×</button></div>
     <form class="form" id="crForm" autocomplete="off">
-      ${E ? `<div class="hint-ok" style="background:#f6f4ef;color:var(--ink);margin-top:10px">Created by <b>${esc(E.createdBy)}</b> · assigned to <b>${esc(E.assign)}</b><br><span style="color:var(--muted)">You can change the reverse pickup AWB, products, address${E.xawb?' and exchange AWB':''} here.</span></div>
+      ${E ? `<div class="hint-ok" style="background:#f6f4ef;color:var(--ink);margin-top:10px">${E.isRD?`<b>${esc(TYPE_LABEL[E.type])}</b> · `:''}Created by <b>${esc(E.createdBy)}</b> · assigned to <b>${esc(E.assign)}</b><br><span style="color:var(--muted)">You can change ${E.isRD?'the products':'the reverse pickup AWB, products, address'}${E.xawb?' and dispatch AWB':''} here.</span></div>
       <input type="hidden" id="crOrder" value="${esc(E.order)}"><div id="crOrderHint"></div>` : `
-      <label class="f">Pickup created by <span class="req">*</span></label>
+      <label class="f">${RD?'Created by':'Pickup created by'} <span class="req">*</span></label>
       <select class="in" id="crBy" required>${userOptions(S.me&&S.me.u)}</select>
       <label class="f">Order ID <span class="req">*</span></label>
       <input class="in" id="crOrder" placeholder="e.g. 21116" required inputmode="numeric">
       <div id="crOrderHint"></div>`}
+      ${RD && !E ? `<label class="f">What needs dispatching? <span class="req">*</span></label>
+      <select class="in" id="crKind"><option value="">Choose…</option><option value="RTO">Order is RTO</option><option value="Missing Items">Missing items dispatch</option></select>` : ''}
+      ${RD ? '' : `
       <label class="f">Reverse pickup via <span class="req">*</span></label>
       <select class="in" id="crVia"><option value="Delhivery">Delhivery AWB no.</option><option value="Self Courier">Self courier (customer ships it)</option></select>
       <div id="crAwbWrap"><label class="f">Delhivery AWB no. <span class="req">*</span></label><input class="in mono" id="crAwb" placeholder="Reverse pickup AWB" inputmode="numeric">
-        ${E?'<div class="help">Changing the AWB restarts reverse pickup tracking for this ticket.</div>':''}</div>
-      <label class="f">Products for exchange <span class="req">*</span></label>
+        ${E?'<div class="help">Changing the AWB restarts reverse pickup tracking for this ticket.</div>':''}</div>`}
+      <div id="crProdWrap" class="${RD && !(E && E.type==='Missing Items') && !(E && E.products.length) ? 'hidden' : ''}">
+      <label class="f">${RD?'Products to dispatch':'Products for exchange'} <span class="req">*</span></label>
       <div class="combo"><input class="in" id="crProd" placeholder="Loading Shopify products…" disabled><div class="combo-list hidden" id="crList"></div></div>
       <div class="help" id="crProdHelp">Search by name, colour, size or SKU. Add as many as needed.</div>
       <div class="picked" id="crPicked"></div>
-      <label class="f">New delivery address <span style="text-transform:none;font-weight:500">(optional)</span></label>
-      <textarea class="in" id="crAddr" placeholder="Only if the customer wants the exchange at a different address — include name, phone, pincode"></textarea>
-      ${E ? (E.xawb ? `<label class="f">Exchange AWB no. (Proship)</label><input class="in mono" id="crXawb" value="${esc(E.xawb)}"><div class="help">Clear it to undo the dispatch. Changing it restarts exchange tracking.</div>` : '') : `
-      <label class="f">Assign ticket to <span class="req">*</span></label>
-      <select class="in" id="crAssign" required>${userOptions('', 'Choose who creates the exchange…')}</select>`}
+      </div>
+      ${RD ? '' : `<label class="f">New delivery address <span style="text-transform:none;font-weight:500">(optional)</span></label>
+      <textarea class="in" id="crAddr" placeholder="Only if the customer wants the exchange at a different address — include name, phone, pincode"></textarea>`}
+      ${E ? (E.xawb ? `<label class="f">Dispatch courier</label><select class="in" id="crXcourier"><option value="Proship" ${E.xcourier!=='Mahavir'?'selected':''}>Proship AWB</option><option value="Mahavir" ${E.xcourier==='Mahavir'?'selected':''}>Mahavir AWB</option></select>
+      <label class="f">Dispatch AWB no.</label><input class="in mono" id="crXawb" value="${esc(E.xawb)}"><div class="help">Clear it to undo the dispatch. Proship AWBs are tracked; Mahavir AWBs are marked Delivered.</div>` : '') : `
+      <div id="crAssignWrap" class="${RD?'hidden':''}"><label class="f">Assign ticket to <span class="req">*</span></label>
+      <select class="in" id="crAssign" required>${userOptions('', RD?'Choose who dispatches it…':'Choose who creates the exchange…')}</select></div>`}
       <div id="crMsg"></div>
     </form>
-    <div class="form-foot">${E&&canDeleteTicket(E)?'<button class="btn danger" id="crDelete" type="button" title="Delete this pickup">Delete</button>':''}<button class="btn" data-close type="button">Cancel</button><button class="btn primary" id="crSubmit" type="button">${E?'Save changes':'Create reverse pickup'}</button></div>
+    <div class="form-foot">${E&&canDeleteTicket(E)?'<button class="btn danger" id="crDelete" type="button" title="Delete this pickup">Delete</button>':''}<button class="btn" data-close type="button">Cancel</button><button class="btn primary" id="crSubmit" type="button">${submitText}</button></div>
   </aside></div>`;
   const orderIn=$('#crOrder'), via=$('#crVia'), prodIn=$('#crProd'), listEl=$('#crList');
   orderIn.addEventListener('input', ()=>{
@@ -1152,7 +1171,9 @@ function openCreate(E){
       ? `<div class="hint-ok">${esc(o.name)} · ${inr(o.value)} · ${esc(o.mode||'')} · ${esc(o.statusLabel)}${o.date?' · ordered '+esc(fmtDate(o.date)):''}</div>${open.length?`<div class="hint-warn">This order already has an open exchange: ${open.map(t=>esc(t.id)).join(', ')}</div>`:''}`
       : `<div class="hint-warn">${esc(name)} isn't in the orders sheet. You can still create the ticket — double-check the number.</div>`;
   });
-  via.addEventListener('change', ()=>show($('#crAwbWrap'), via.value==='Delhivery'));
+  if(via) via.addEventListener('change', ()=>show($('#crAwbWrap'), via.value==='Delhivery'));
+  const kindSel = $('#crKind');
+  if(kindSel) kindSel.addEventListener('change', ()=>{ show($('#crProdWrap'), kindSel.value==='Missing Items'); show($('#crAssignWrap'), !!kindSel.value); if(kindSel.value==='Missing Items') $('#crProd').focus(); });
   const drawPicked = ()=>{ $('#crPicked').innerHTML = F.picked.map((p,i)=>`<div class="pk-item"><span class="nm">${esc(p.title)}${p.sku?`<span class="sku" style="color:var(--muted);font-size:11.5px"> · ${esc(p.sku)}</span>`:''}</span>
       <span class="qty"><button type="button" data-qd="${i}">−</button><span>${p.qty}</span><button type="button" data-qi="${i}">+</button></span><button type="button" class="rm" data-rm="${i}" aria-label="Remove">×</button></div>`).join(''); };
   const matches = ()=>{
@@ -1184,24 +1205,40 @@ function openCreate(E){
   });
   $('#crForm').addEventListener('submit', e=>e.preventDefault());
   if(E){ // prefill for editing
-    via.value = E.via==='Self Courier' ? 'Self Courier' : 'Delhivery'; show($('#crAwbWrap'), via.value==='Delhivery');
-    $('#crAwb').value = E.rawb||''; $('#crAddr').value = E.address||''; drawPicked();
+    if(via){ via.value = E.via==='Self Courier' ? 'Self Courier' : 'Delhivery'; show($('#crAwbWrap'), via.value==='Delhivery');
+      $('#crAwb').value = E.rawb||''; $('#crAddr').value = E.address||''; }
+    drawPicked();
     if($('#crDelete')) $('#crDelete').addEventListener('click', ()=>deleteTicket(E));
   }
   $('#crSubmit').addEventListener('click', async ()=>{
     const v = orderIn.value.trim(), msg = $('#crMsg');
     if(E){
-      const err = via.value==='Delhivery' && !$('#crAwb').value.trim() ? 'Enter the Delhivery AWB number.' : !F.picked.length ? 'Keep at least one product.' : '';
+      const err = via && via.value==='Delhivery' && !$('#crAwb').value.trim() ? 'Enter the Delhivery AWB number.' : !F.picked.length && E.type!=='RTO' ? 'Keep at least one product.' : '';
       if(err){ msg.innerHTML = `<div class="err">${esc(err)}</div>`; return; }
       const b = $('#crSubmit'); b.disabled = true; b.innerHTML = '<span class="spin"></span>';
       try{
-        const data = { ticket:E.id, via:via.value, awb:$('#crAwb').value.trim(), products:F.picked, address:$('#crAddr').value.trim() };
-        if($('#crXawb')) data.exchangeAwb = $('#crXawb').value.trim();
+        const data = { ticket:E.id };
+        if(via){ data.via = via.value; data.awb = $('#crAwb').value.trim(); data.address = $('#crAddr').value.trim(); }
+        if(F.picked.length) data.products = F.picked;
+        if($('#crXawb')){ data.exchangeAwb = $('#crXawb').value.trim(); data.exchangeCourier = $('#crXcourier').value; }
         const r = await api('exEdit', data);
         if(!r.ok) throw new Error(r.error);
         const t = upsertTicket(r.row); $('#layer').innerHTML='';
         toast(r.unchanged ? 'No changes to save' : `${t.id} updated · ${XCAT[t.stage].label}`);
       }catch(e2){ if(e2.message!=='SESSION_EXPIRED'){ msg.innerHTML = `<div class="err">${esc(e2.message)}</div>`; b.disabled=false; b.textContent='Save changes'; } }
+      return;
+    }
+    if(RD){
+      const kind = kindSel.value;
+      const err = !v ? 'Enter the order ID.' : !kind ? 'Choose "Order is RTO" or "Missing items dispatch".' : kind==='Missing Items' && !F.picked.length ? 'Add the missing products.' : !$('#crAssign').value ? 'Choose who to assign the ticket to.' : '';
+      if(err){ msg.innerHTML = `<div class="err">${esc(err)}</div>`; return; }
+      const b = $('#crSubmit'); b.disabled = true; b.innerHTML = '<span class="spin"></span>';
+      try{
+        const r = await api('exRedispatch',{ createdBy:$('#crBy').value, order:v, kind, products: kind==='Missing Items' ? F.picked : [], assignTo:$('#crAssign').value });
+        if(!r.ok) throw new Error(r.error);
+        const t = upsertTicket(r.row);
+        $('#layer').innerHTML=''; toast(`${t.id} created · assigned to ${t.assign}`);
+      }catch(e2){ if(e2.message!=='SESSION_EXPIRED'){ msg.innerHTML = `<div class="err">${esc(e2.message)}</div>`; b.disabled=false; b.textContent=submitText; } }
       return;
     }
     const err = !v ? 'Enter the order ID.' : via.value==='Delhivery' && !$('#crAwb').value.trim() ? 'Enter the Delhivery AWB number.' : !F.picked.length ? 'Add at least one product.' : !$('#crAssign').value ? 'Choose who to assign the ticket to.' : '';
@@ -1214,7 +1251,7 @@ function openCreate(E){
       $('#layer').innerHTML=''; toast(`${t.id} created · ${XCAT[t.stage].label}`);
     }catch(e2){ if(e2.message!=='SESSION_EXPIRED'){ msg.innerHTML = `<div class="err">${esc(e2.message)}</div>`; b.disabled=false; b.textContent='Create reverse pickup'; } }
   });
-  setTimeout(()=>(E?$('#crAwb'):orderIn).focus(),60);
+  setTimeout(()=>(E?($('#crAwb')||$('#crProd')):orderIn).focus(),60);
   loadProducts().then(()=>{ if(!document.body.contains(prodIn)) return; prodIn.disabled=false; prodIn.placeholder=`Search ${X.products.length} Shopify products…`; })
     .catch(e=>{ if(!document.body.contains(prodIn)) return; prodIn.placeholder='Products could not load'; $('#crProdHelp').innerHTML = `<span style="color:#b42318">${esc(e.message)}</span>`; });
 }
@@ -1224,35 +1261,46 @@ function openDispatch(ticketId){
   const eligible = X.rows.filter(t=>t.id===ticketId || (!t.xawb && t.rStage!=='Cancelled'))
     .sort((a,b)=> (isTask(b)&&isMe(b.assign)) - (isTask(a)&&isMe(a.assign)) || (b.created||0)-(a.created||0));
   const cur = X.rows.find(t=>t.id===ticketId);
+  const optLabel = t => t.isRD ? TYPE_LABEL[t.type] : (REV_LABEL[t.rStage]||[''])[0];
   $('#layer').innerHTML = `<div class="overlay left" id="ov"><aside class="drawer" role="dialog" aria-label="Dispatch exchange">
-    <div class="drawer-head"><h3>${cur&&cur.xawb?'Change exchange AWB':'Dispatch an exchange'}</h3><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="drawer-head"><h3>${cur&&cur.xawb?'Change dispatch AWB':'Dispatch an exchange'}</h3><button class="x" data-close aria-label="Close">×</button></div>
     <form class="form" id="dpForm" autocomplete="off">
-      <label class="f">Exchange ticket <span class="req">*</span></label>
-      <select class="in" id="dpTicket"><option value="">Choose a ticket…</option>${eligible.map(t=>`<option value="${esc(t.id)}" ${t.id===ticketId?'selected':''}>${esc(t.id)} · ${esc(t.order)} · ${esc((REV_LABEL[t.rStage]||[''])[0])}${isMe(t.assign)?' · yours':''}</option>`).join('')}</select>
+      <label class="f">Ticket <span class="req">*</span></label>
+      <select class="in" id="dpTicket"><option value="">Choose a ticket…</option>${eligible.map(t=>`<option value="${esc(t.id)}" ${t.id===ticketId?'selected':''}>${esc(t.id)} · ${esc(t.order)} · ${esc(optLabel(t))}${isMe(t.assign)?' · yours':''}</option>`).join('')}</select>
       <div id="dpInfo"></div>
-      <label class="f">Proship AWB no. for the exchange <span class="req">*</span></label>
-      <input class="in mono" id="dpAwb" placeholder="Scan or type the Proship AWB" value="${esc(cur&&cur.xawb||'')}">
-      <div class="help">${X.proship?'Its status will be tracked automatically through Proship.':'Proship tracking isn\'t connected yet — you can update the exchange status by hand from the ticket.'}</div>
+      <label class="f">Courier <span class="req">*</span></label>
+      <select class="in" id="dpCourier"><option value="Proship" ${!cur||cur.xcourier!=='Mahavir'?'selected':''}>Proship AWB</option><option value="Mahavir" ${cur&&cur.xcourier==='Mahavir'?'selected':''}>Mahavir AWB</option></select>
+      <label class="f" id="dpAwbLabel">AWB no. <span class="req">*</span></label>
+      <input class="in mono" id="dpAwb" placeholder="Scan or type the AWB" value="${esc(cur&&cur.xawb||'')}">
+      <div class="help" id="dpHelp"></div>
       <div id="dpMsg"></div>
     </form>
-    <div class="form-foot"><button class="btn" data-close type="button">Cancel</button><button class="btn primary" id="dpSubmit" type="button">Save exchange AWB</button></div>
+    <div class="form-foot"><button class="btn" data-close type="button">Cancel</button><button class="btn primary" id="dpSubmit" type="button">Create exchange</button></div>
   </aside></div>`;
-  const sel=$('#dpTicket');
+  const sel=$('#dpTicket'), cour=$('#dpCourier');
+  const btnText = ()=>{ const t = X.rows.find(x=>x.id===sel.value); return t&&t.xawb ? 'Save AWB' : t&&t.isRD ? 'Create dispatch' : 'Create exchange'; };
+  const help = ()=>{
+    $('#dpAwbLabel').innerHTML = (cour.value==='Mahavir'?'Mahavir':'Proship')+' AWB no. <span class="req">*</span>';
+    $('#dpHelp').textContent = cour.value==='Mahavir' ? 'Mahavir AWBs can\'t be tracked through Proship, so this ticket will be marked Delivered as soon as you save.'
+      : X.proship ? 'Its status will be tracked automatically through Proship.' : 'Proship tracking isn\'t connected yet — you can update the status by hand from the ticket.';
+    $('#dpSubmit').textContent = btnText();
+  };
   const info = ()=>{ const t = X.rows.find(x=>x.id===sel.value);
-    $('#dpInfo').innerHTML = t ? `<div class="hint-ok" style="background:#f6f4ef;color:var(--ink)"><b>${esc(t.order)}</b> · ${revPill(t)}<div style="margin-top:6px">${t.products.map(p=>`• ${esc(p.title)}${p.qty>1?' × '+p.qty:''}`).join('<br>')}</div>${t.address?`<div style="margin-top:6px"><b>Ship to new address:</b><br>${esc(t.address).replace(/\n/g,'<br>')}</div>`:'<div style="margin-top:6px;color:var(--muted)">Ship to the original order address.</div>'}</div>
-      ${t.rStage==='Scheduled'?'<div class="hint-warn">The reverse pickup hasn\'t been picked up yet.</div>':''}` : ''; };
-  sel.addEventListener('change', info); info();
+    $('#dpInfo').innerHTML = t ? `<div class="hint-ok" style="background:#f6f4ef;color:var(--ink)"><b>${esc(t.order)}</b> · ${revPill(t)}<div style="margin-top:6px">${t.products.length?t.products.map(p=>`• ${esc(p.title)}${p.qty>1?' × '+p.qty:''}`).join('<br>'):(t.type==='RTO'?'Send the whole order again (RTO).':'')}</div>${t.address?`<div style="margin-top:6px"><b>Ship to new address:</b><br>${esc(t.address).replace(/\n/g,'<br>')}</div>`:'<div style="margin-top:6px;color:var(--muted)">Ship to the original order address.</div>'}</div>
+      ${!t.isRD&&t.rStage==='Scheduled'?'<div class="hint-warn">The reverse pickup hasn\'t been picked up yet.</div>':''}` : '';
+    help(); };
+  sel.addEventListener('change', info); cour.addEventListener('change', help); info();
   $('#dpForm').addEventListener('submit', e=>{ e.preventDefault(); $('#dpSubmit').click(); });
   $('#dpSubmit').addEventListener('click', async ()=>{
     const msg=$('#dpMsg');
     if(!sel.value){ msg.innerHTML='<div class="err">Choose a ticket.</div>'; return; }
-    if(!$('#dpAwb').value.trim()){ msg.innerHTML='<div class="err">Enter the Proship AWB number.</div>'; return; }
+    if(!$('#dpAwb').value.trim()){ msg.innerHTML=`<div class="err">Enter the ${cour.value} AWB number.</div>`; return; }
     const b=$('#dpSubmit'); b.disabled=true; b.innerHTML='<span class="spin"></span>';
     try{
-      const r = await api('exDispatch',{ticket:sel.value, awb:$('#dpAwb').value.trim()});
+      const r = await api('exDispatch',{ticket:sel.value, awb:$('#dpAwb').value.trim(), courier:cour.value});
       if(!r.ok) throw new Error(r.error);
-      const t = upsertTicket(r.row); $('#layer').innerHTML=''; toast(`${t.id}: exchange AWB saved · ${XCAT[t.stage].label}`);
-    }catch(e){ if(e.message!=='SESSION_EXPIRED'){ msg.innerHTML=`<div class="err">${esc(e.message)}</div>`; b.disabled=false; b.textContent='Save exchange AWB'; } }
+      const t = upsertTicket(r.row); $('#layer').innerHTML=''; toast(`${t.id}: ${t.xcourier} AWB saved · ${XCAT[t.stage].label}`);
+    }catch(e){ if(e.message!=='SESSION_EXPIRED'){ msg.innerHTML=`<div class="err">${esc(e.message)}</div>`; b.disabled=false; b.textContent=btnText(); } }
   });
   setTimeout(()=>(sel.value?$('#dpAwb'):sel).focus(),60);
 }
@@ -1266,17 +1314,18 @@ function openTicket(t){
     <div class="drawer-head"><h3>${esc(t.id)} · ${esc(t.order)}</h3><button class="x" data-close aria-label="Close">×</button></div>
     <div style="padding:12px 16px 0"><span class="pill" style="--c:${XCAT[t.stage].color}">${esc(XCAT[t.stage].label)}</span></div>
     <div class="two">
+      ${t.isRD ? `<div class="sbox"><h5>Ticket type</h5>${typePill(t)}<div class="l">${t.type==='RTO'?'The order came back (RTO) — send it out again.':'Items were missing from the parcel — send them.'}</div><div class="l">No reverse pickup needed.</div></div>` : `
       <div class="sbox"><h5>Reverse pickup</h5>${revPill(t)}
         <div class="l">${t.via==='Self Courier'?'Self courier':'Delhivery · <span class="mono">'+esc(t.rawb)+'</span>'}</div>
         ${t.rStatus?`<div class="l">${esc(t.rStatus)}</div>`:''}${t.rLoc?`<div class="l">${esc(t.rLoc)}</div>`:''}${t.rUpd?`<div class="l">${esc(fmtDate(t.rUpd))}</div>`:''}
         ${t.via==='Self Courier'?stageSel('tkRev',['Scheduled','Picked Up','Delivered','Cancelled'],t.rStage):''}
-        ${t.rawb&&t.via!=='Self Courier'?`<div class="l"><a href="https://www.delhivery.com/track/package/${encodeURIComponent(t.rawb)}" target="_blank" rel="noopener">Track on Delhivery ↗</a></div>`:''}</div>
-      <div class="sbox"><h5>Exchange</h5>${excPill(t)}
-        ${t.xawb?`<div class="l">Proship · <span class="mono">${esc(t.xawb)}</span></div>`:''}
+        ${t.rawb&&t.via!=='Self Courier'?`<div class="l"><a href="https://www.delhivery.com/track/package/${encodeURIComponent(t.rawb)}" target="_blank" rel="noopener">Track on Delhivery ↗</a></div>`:''}</div>`}
+      <div class="sbox"><h5>${t.isRD?'Dispatch':'Exchange'}</h5>${excPill(t)}
+        ${t.xawb?`<div class="l">${esc(t.xcourier||'Proship')} · <span class="mono">${esc(t.xawb)}</span></div>`:''}
         ${t.xStatus?`<div class="l">${esc(t.xStatus)}</div>`:''}${t.xLoc?`<div class="l">${esc(t.xLoc)}</div>`:''}
         ${t.dispBy?`<div class="l">Dispatched by ${esc(t.dispBy)}${t.dispAt?' · '+esc(fmtDate(t.dispAt)):''}</div>`:''}
-        ${t.xawb&&!X.proship?stageSel('tkEx',['Scheduled','In Transit','Delivered','RTO'],t.xStage):''}
-        ${t.rStage!=='Cancelled'?`<button class="btn sm ${t.xawb?'':'primary'}" style="margin-top:10px" data-xdispatch="${esc(t.id)}">${t.xawb?'Change AWB':'Create exchange'}</button>`:''}</div>
+        ${t.xawb&&(!X.proship||t.xcourier==='Mahavir')?stageSel('tkEx',['Scheduled','In Transit','Delivered','RTO'],t.xStage):''}
+        ${t.rStage!=='Cancelled'?`<button class="btn sm ${t.xawb?'':'primary'}" style="margin-top:10px" data-xdispatch="${esc(t.id)}">${t.xawb?'Change AWB':dispatchWord(t)}</button>`:''}</div>
     </div>
     <dl class="kv">
       <div><dt>Products</dt><dd>${t.products.map(p=>`${esc(p.title)}${p.qty>1?' × '+p.qty:''}${p.sku?` <span style="color:var(--muted);font-size:12px">${esc(p.sku)}</span>`:''}`).join('<br>')||'-'}</dd></div>
@@ -1306,8 +1355,8 @@ function openTicket(t){
 }
 function exportExchangeCsv(){
   const list = xFiltered(xBase());
-  const head = ['Ticket','Order','Created','Created By','Pickup Via','Reverse AWB','Reverse Stage','Reverse Status','Exchange AWB','Exchange Stage','Exchange Status','Products','New Address','Assigned To','Tab'];
-  const rows = list.map(t=>[t.id,t.order,fmtDate(t.created),t.createdBy,t.via,t.rawb,t.rStage,t.rStatus,t.xawb,t.xStage,t.xStatus,t.productsText,t.address,t.assign,XCAT[t.stage].label]);
+  const head = ['Ticket','Type','Order','Created','Created By','Pickup Via','Reverse AWB','Reverse Stage','Reverse Status','Dispatch Courier','Dispatch AWB','Dispatch Stage','Dispatch Status','Products','New Address','Assigned To','Tab'];
+  const rows = list.map(t=>[t.id,TYPE_LABEL[t.type]||t.type,t.order,fmtDate(t.created),t.createdBy,t.isRD?'':t.via,t.rawb,t.rStage,t.rStatus,t.xcourier,t.xawb,t.xStage,t.xStatus,t.productsText,t.address,t.assign,XCAT[t.stage].label]);
   const csv = [head].concat(rows).map(r=>r.map(v=>{v=String(v==null?'':v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(',')).join('\n');
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'}));
   a.download=`rawayi-exchanges-${X.tab}-${new Date().toISOString().slice(0,10)}.csv`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
@@ -1316,6 +1365,7 @@ $('#exchangeView').addEventListener('click', async e=>{
   const t = e.target.closest('button,[data-xi],th'); if(!t) return;
   if(t.id==='exNewBtn'){ openCreate(); return; }
   if(t.id==='exDispatchBtn'){ openDispatch(''); return; }
+  if(t.id==='exRedispatchBtn'){ openCreate(null, 'redispatch'); return; }
   if(t.dataset.xdispatch){ openDispatch(t.dataset.xdispatch); return; }
   if(t.id==='xTaskToggle'){ X.allTasks=!X.allTasks; renderExchange(); return; }
   if(t.dataset.xtab){ X.tab=t.dataset.xtab; X.limit=PAGE; renderExchange(); $('#xpanel').scrollIntoView({behavior:'smooth',block:'start'}); return; }
